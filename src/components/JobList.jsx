@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, List, ListItem, ListItemText, Grid, TextField, Button, Alert, Select, MenuItem, InputLabel } from '@mui/material';
 import axios from 'axios';
+import ServiceCount from './ServiceCount'
+import { TextField, Button, Grid, Typography, Select, MenuItem, InputLabel, List, ListItem, ListItemText, Alert } from '@mui/material';
+
+const topServices = ['Oil Change', 'Tire Rotation', 'Brake Inspection', 'Engine Tune-up', 'Car Wash'];
 
 function JobList() {
   const [jobData, setJobData] = useState({
@@ -14,8 +17,9 @@ function JobList() {
   const [cars, setCars] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [technicians, setTechnicians] = useState([]);
-
-  const topServices = ['Oil Change', 'Tire Rotation', 'Brake Inspection', 'Engine Tune-up', 'Car Wash'];
+  const [filterDate, setFilterDate] = useState('');
+  const [fetchJobs, setFetchJobs] = useState(false);
+  const [techniciansWithNoJobs, setTechniciansWithNoJobs] = useState([]);
 
   useEffect(() => {
     axios.get('http://localhost:3006/cars')
@@ -28,16 +32,6 @@ function JobList() {
   }, []);
 
   useEffect(() => {
-    axios.get('http://localhost:3007/jobs')
-      .then(response => {
-        setFilteredJobs(response.data);
-      })
-      .catch(error => {
-        console.error('Error fetching jobs:', error);
-      });
-  }, []);
-
-  useEffect(() => {
     axios.get('http://localhost:3008/technician')
       .then(response => {
         const formattedTechnicians = response.data.map(tech => ({
@@ -45,11 +39,15 @@ function JobList() {
           name: `${tech.fname} ${tech.lname}`
         }));
         setTechnicians(formattedTechnicians);
+        // Filter technicians with no jobs
+        const techniciansWithJobs = filteredJobs.map(job => job.technician);
+        const techniciansWithoutJobs = formattedTechnicians.filter(tech => !techniciansWithJobs.includes(tech.name));
+        setTechniciansWithNoJobs(techniciansWithoutJobs);
       })
       .catch(error => {
         console.error('Error fetching technicians:', error);
       });
-  }, []);
+  }, [filteredJobs]);
 
   const handleChange = (e) => {
     setJobData({
@@ -82,12 +80,33 @@ function JobList() {
       });
   };
 
+  useEffect(() => {
+    if (filterDate && fetchJobs) {
+      axios.get(`http://localhost:3007/jobs?date=${filterDate}`)
+        .then(response => {
+          setFilteredJobs(response.data);
+          setAlertMessage(response.data.length === 0 ? 'No jobs found for the selected date' : '');
+          setFetchJobs(false);
+        })
+        .catch(error => {
+          console.error('Error fetching jobs for the given date:', error);
+          setAlertMessage('Error fetching jobs for the given date');
+          setFilteredJobs([]);
+          setFetchJobs(false);
+        });
+    }
+  }, [filterDate, fetchJobs]);
+
+  const handleDateChange = (e) => {
+    setFilterDate(e.target.value);
+    setFetchJobs(true); // Set to true to fetch jobs when date is changed
+  };
+
   return (
-    <div style={{ backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '5px', marginTop: '20px' }}>
-      <Typography variant="h5" component="h2" gutterBottom>
-        Job List
+    <div>
+      <Typography variant="h4" component="h2" gutterBottom>
+        Add Job
       </Typography>
-      {alertMessage && <Alert severity="success">{alertMessage}</Alert>}
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
@@ -167,15 +186,51 @@ function JobList() {
               Add Job
             </Button>
           </Grid>
+          <Grid item xs={12} sm={6}>
+            <InputLabel>Date Filter</InputLabel>
+            <TextField
+              type="date"
+              label=""
+              value={filterDate}
+              onChange={handleDateChange}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <ServiceCount topServices={topServices} />
+          </Grid>
         </Grid>
       </form>
-      <List>
-        {filteredJobs.map((job) => (
-          <ListItem key={job.id} style={{ border: '1px solid #ccc', borderRadius: '5px', marginBottom: '10px' }}>
-            <ListItemText primary={`${job.car} - ${job.service}`} secondary={`Date: ${job.date}, Technician: ${job.technician}`} />
-          </ListItem>
-        ))}
-      </List>
+      {techniciansWithNoJobs.length > 0 && (
+        <div>
+          <Typography variant="h4" component="h2" gutterBottom>
+            Technicians With No Jobs
+          </Typography>
+          <List>
+            {techniciansWithNoJobs.map((technician, index) => (
+              <ListItem key={index}>
+                <ListItemText primary={technician.name} />
+              </ListItem>
+            ))}
+          </List>
+        </div>
+      )}
+      {filteredJobs.length > 0 && (
+        <div>
+          <
+          Typography variant="h4" component="h2" gutterBottom>
+            Jobs for Selected Date
+          </Typography>
+          <List>
+            {filteredJobs.map((job) => (
+              <ListItem key={job.id} style={{ border: '1px solid #ccc', borderRadius: '5px', marginBottom: '10px' }}>
+                <ListItemText primary={`${job.car} - ${job.service}`} secondary={`Date: ${job.date}, Technician: ${job.technician}`} />
+              </ListItem>
+            ))}
+          </List>
+        </div>
+      )}
+      {alertMessage && <Alert severity="info">{alertMessage}</Alert>}
     </div>
   );
 }
