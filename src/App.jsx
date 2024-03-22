@@ -47,7 +47,8 @@ function App() {
     await fetch ('http://localhost:5050/test/', {
       method: 'POST',
       body: JSON.stringify({
-        data: value
+        data: value,
+        array: ["This", "Is", "An", "Array"]
       }),
       headers: {
         'Content-type': 'application/json; charset=UTF-8',
