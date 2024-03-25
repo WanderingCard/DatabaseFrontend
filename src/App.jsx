@@ -5,9 +5,10 @@ function App() {
   const [integrationData, setIntData] = useState([]);
   const [fieldValue, setFieldValue] = useState("");
   const [filterValue, setFilterValue] = useState("");
+  const [fieldValueTwo, setFieldValueTwo] = useState("");
 
   const fetchFitlerData = async () => {
-    let url = 'http://localhost:5050/test/';
+    let url = 'http://localhost:5050/cars/';
     if (filterValue !== "") {
       url += `?filter=${filterValue}`;
     }
@@ -30,7 +31,7 @@ function App() {
   }
 
   const fetchAllData = async () => {
-    await fetch('http://localhost:5050/test/', {
+    await fetch('http://localhost:5050/cars/', {
       method: 'GET'
     })
       .then((response) => response.json())
@@ -43,12 +44,12 @@ function App() {
       });
   }
 
-  const postData = async (value) => {
-    await fetch ('http://localhost:5050/test/', {
+  const postData = async () => {
+    await fetch ('http://localhost:5050/cars/', {
       method: 'POST',
       body: JSON.stringify({
-        data: value,
-        array: ["This", "Is", "An", "Array"]
+        model: fieldValue,
+        licensePlate: fieldValueTwo
       }),
       headers: {
         'Content-type': 'application/json; charset=UTF-8',
@@ -67,10 +68,21 @@ function App() {
         <TextField 
           fullWidth
           variant='outlined' 
-          label='Test' 
+          label='Make' 
           value={fieldValue}
           onChange={(event) => {
             setFieldValue(event.target.value)
+          }}
+        />
+      </Grid>
+      <Grid item xs={8}>
+        <TextField
+          fullWidth
+          variant='outlined'
+          label='License Plate'
+          value={fieldValueTwo}
+          onChange={(event) => {
+            setFieldValueTwo(event.target.value)
           }}
         />
       </Grid>
@@ -79,8 +91,9 @@ function App() {
           fullWidth
           variant='contained'
           onClick={() => {
-            postData(fieldValue);
+            postData();
             setFieldValue('');
+            setFieldValueTwo('');
           }}
         >
           Add Data
