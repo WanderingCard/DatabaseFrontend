@@ -20,7 +20,7 @@ function App() {
     try {
       const [customersData, carsData, jobsData] = await Promise.all([
         axios.get('http://localhost:3005/customers'),
-        axios.get('http://localhost:3006/cars'),
+        axios.get('http://localhost:5050/cars'),
         axios.get('http://localhost:3007/jobs')
       ]);
       setCustomers(customersData.data);
