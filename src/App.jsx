@@ -1,116 +1,75 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
-import { Container, Typography } from '@mui/material';
-import CustomerForm from './components/CustomerForm';
-import NewCar from './components/NewCar';
-import JobList from './components/JobList';
-import TechnicianForm from './components/TechnicianForm';
 
 function App() {
-  const [activeSection, setActiveSection] = useState('customers');
-  const [customers, setCustomers] = useState([]);
-  const [cars, setCars] = useState([]);
-  const [jobs, setJobs] = useState([]);
+    const [formData, setFormData] = useState({
+        customer_id: '',
+        dateTime: '',
+        job_id: ''
+    });
+    const [alertMessage, setAlertMessage] = useState('');
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
 
-  const fetchData = async () => {
-    try {
-      const [customersData, carsData, jobsData] = await Promise.all([
-        axios.get('http://localhost:3005/customers'),
-        axios.get('http://localhost:3006/cars'),
-        axios.get('http://localhost:3007/jobs')
-      ]);
-      setCustomers(customersData.data);
-      setCars(carsData.data);
-      setJobs(jobsData.data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axios.post('http://localhost:5050/job', formData);
+            console.log(response.data);
+            setAlertMessage('Form submitted successfully!');
+        } catch (error) {
+            console.error(error);
+            setAlertMessage('Error submitting form. Please try again.');
+        }
+    };
 
-  const renderSection = () => {
-    switch (activeSection) {
-      case 'customers':
-        return (
-          <div>
-            <h2>Customers</h2>
-            <CustomerForm />
-            <ul>
-              {customers.map(customer => (
-                <li key={customer.id}>
-                  <strong>{customer.firstName} {customer.lastName}</strong>: {customer.address} ({customer.phoneNumber})
-                </li>
-              ))}
-            </ul>
-          </div>
-        );
-      case 'cars':
-        return (
-          <div>
-            <h2>Cars</h2>
-            <NewCar />
-            <ul>
-              {cars.map(car => {
-                const associatedCustomer = customers.find(customer => customer.id === car.customerId);
-                const customerName = associatedCustomer ? `${associatedCustomer.firstName} ${associatedCustomer.lastName}` : 'Unknown Customer';
-                return (
-                  <li key={car.id}>
-                    <strong>Customer Name:</strong> {customerName}, <strong>Model:</strong> {car.model}, <strong>Make:</strong> {car.make}, <strong>Year:</strong> {car.year}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        );
-      case 'jobs':
-        return (
-          <div>
-            <h2>Jobs</h2>
-            <JobList />
-            <ul>
-              {jobs.map(job => {
-                const associatedCar = cars.find(car => car.id === job.carId);
-                const associatedCustomer = associatedCar ? customers.find(customer => customer.id === associatedCar.customerId) : null;
-                const carDetails = associatedCar ? `${associatedCar.make} ${associatedCar.model} (${associatedCar.year})` : 'Unknown Car';
-                const customerName = associatedCustomer ? `${associatedCustomer.firstName} ${associatedCustomer.lastName}` : 'Unknown Customer';
-                return (
-                  <li key={job.id}>
-                    <strong>Job ID:</strong> {job.id}, <strong>Car:</strong> {carDetails}, <strong>Customer:</strong> {customerName}, <strong>Service:</strong> {job.service}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        );
-      case 'technician':
-        return (
-          <div>
-            <h2>Technician</h2>
-            <TechnicianForm />
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <Container maxWidth="md">
-      <Typography variant="h4" component="h1" align="center" gutterBottom>
-        Mechanic Shop Management
-      </Typography>
-      <div>
-        <button onClick={() => setActiveSection('customers')}>Customers</button>
-        <button onClick={() => setActiveSection('cars')}>Cars</button>
-        <button onClick={() => setActiveSection('jobs')}>Jobs</button>
-        <button onClick={() => setActiveSection('technician')}>Technician</button>
-      </div>
-      {renderSection()}
-    </Container>
-  );
+    return (
+        <div>
+            <h1>Functional Integration Test</h1>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label htmlFor="customer_id">Customer ID:</label>
+                    <input
+                        type="text"
+                        id="customer_id"
+                        name="customer_id"
+                        value={formData.customer_id}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div>
+                    <label htmlFor="dateTime">Date Time:</label>
+                    <input
+                        type="text"
+                        id="dateTime"
+                        name="dateTime"
+                        value={formData.dateTime}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div>
+                    <label htmlFor="job_id">Job ID:</label>
+                    <input
+                        type="text"
+                        id="job_id"
+                        name="job_id"
+                        value={formData.job_id}
+                        onChange={handleChange}
+                    />
+                </div>
+                <button type="submit">Submit</button>
+            </form>
+            {alertMessage && <div className="alert">{alertMessage}</div>}
+        </div>
+    );
 }
 
 export default App;
+
+
