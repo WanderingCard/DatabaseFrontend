@@ -92,6 +92,14 @@ function App() {
             <TechnicianForm />
           </div>
         );
+      case 'serice':
+        return(
+          <div>
+            <h2>
+              Add Service
+            </h2>
+          </div>
+        )
       default:
         return null;
     }
@@ -107,6 +115,7 @@ function App() {
         <button onClick={() => setActiveSection('cars')}>Cars</button>
         <button onClick={() => setActiveSection('jobs')}>Jobs</button>
         <button onClick={() => setActiveSection('technician')}>Technician</button>
+        <button onClick={() => setActiveSection('service')}>Service</button>
       </div>
       {renderSection()}
     </Container>
