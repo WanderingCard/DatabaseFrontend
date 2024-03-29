@@ -20,7 +20,7 @@ function App() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:5050/job', formData);
+            const response = await axios.post('http://localhost:5050/jobs', formData);
             console.log(response.data);
             setAlertMessage('Form submitted successfully!');
         } catch (error) {
