@@ -3,11 +3,13 @@ import { Box, Button, Checkbox, Chip, FormControl, Grid, InputLabel, ListItemTex
 
 function App() {
   const [integrationData, setIntData] = useState([]);
+  const [services, setServices] = useState([]);
   const [serviceName, setServiceName] = useState("");
   const [serviceCost, setServiceCost] = useState("");
   const [selectedTechnicians, setSelectedTechs] = useState([]);
   const [filterValue, setFilterValue] = useState("");
-  const [technicians, setTechs] = useState([])
+  const [technicians, setTechs] = useState([]);
+  const [selectedServiceID] = useState();
 
   useEffect(() => {
     fetch('http://localhost:5050/technicians/', {
@@ -22,6 +24,10 @@ function App() {
         console.log(err.message);
       });
   }, [])
+
+  useEffect(() => {
+    fetchAllData(false);
+  }, )
 
   useEffect(() => {
     console.log(technicians)
@@ -50,14 +56,16 @@ function App() {
       });
   }
 
-  const fetchAllData = async () => {
+  const fetchAllData = async (setIntData) => {
     await fetch('http://localhost:5050/services/', {
       method: 'GET'
     })
       .then((response) => response.json())
       .then((data) => {
-        setIntData(data);
+        setServices(data);
         console.log(data);
+        if (setIntData)
+          setIntData(data);
       })
       .catch((err) => {
         console.log(err.message);
@@ -94,6 +102,13 @@ function App() {
 
   return (
     <Grid container spacing ={3} style={{width:'50vw', height:'75vh', marginLeft:'25vw', marginTop:'12.5vh'}}>
+      <Grid item xs={8}>
+        <Select
+
+        >
+
+        </Select>
+      </Grid>
       <Grid item xs={6}>
         <TextField 
           fullWidth
@@ -184,7 +199,7 @@ function App() {
         <Button
           variant='contained'
           onClick={() => {
-            fetchAllData();
+            fetchAllData(true);
           }}
         >
           Get All Data
@@ -192,7 +207,7 @@ function App() {
       </Grid>
       <Grid item xs={12}>
         <pre>
-          {JSON.stringify(integrationData, null, 2)}
+          {integrationData ? JSON.stringify(integrationData, null, 2) : {}}
         </pre>
       </Grid>
     </Grid>
