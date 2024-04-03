@@ -12,15 +12,17 @@ function CustomerForm() {
   const [alertMessage, setAlertMessage] = useState('');
   const [errorFields, setErrorFields] = useState([]);
   const [usedPhoneNumbers, setUsedPhoneNumbers] = useState([]);
+  const [customers, setCustomers] = useState([]);
 
   useEffect(() => {
     axios.get('http://localhost:5050/customers')
       .then(response => {
+        setCustomers(response.data);
         const phoneNumbers = response.data.map(customer => customer.phoneNumber);
         setUsedPhoneNumbers(phoneNumbers);
       })
       .catch(error => {
-        console.error('Error fetching phone numbers:', error);
+        console.error('Error fetching customers:', error);
       });
   }, []);
 
@@ -53,7 +55,8 @@ function CustomerForm() {
           address: '',
           phoneNumber: '',
         });
-        setUsedPhoneNumbers([...usedPhoneNumbers, response.data.phoneNumber]); // Add the newly added phone number to the list of used phone numbers
+        setCustomers([...customers, response.data]); 
+        setUsedPhoneNumbers([...usedPhoneNumbers, response.data.phoneNumber]); 
       })
       .catch(error => {
         console.error('Error adding customer:', error);
@@ -121,8 +124,21 @@ function CustomerForm() {
           </Grid>
         </Grid>
       </form>
+      <Typography variant="h5" component="h2" gutterBottom style={{ marginTop: '20px' }}>
+        Existing Customers
+      </Typography>
+      <Grid container spacing={2}>
+        {customers.map(customer => (
+          <Grid item xs={12} sm={6} md={4} key={customer._id}>
+            <Typography variant="subtitle1">Name: {customer.fname} {customer.lname}</Typography>
+            <Typography variant="body1">Address: {customer.address}</Typography>
+            <Typography variant="body1">Phone Number: {customer.phoneNumber}</Typography>
+          </Grid>
+        ))}
+      </Grid>
     </div>
   );
 }
 
 export default CustomerForm;
+
