@@ -4,8 +4,8 @@ import axios from 'axios';
 
 function CustomerForm() {
   const [customerData, setCustomerData] = useState({
-    firstName: '',
-    lastName: '',
+    fname: '',
+    lname: '',
     address: '',
     phoneNumber: '',
   });
@@ -14,8 +14,7 @@ function CustomerForm() {
   const [usedPhoneNumbers, setUsedPhoneNumbers] = useState([]);
 
   useEffect(() => {
-    // Fetch existing phone numbers from the API
-    axios.get('http://localhost:3005/customers')
+    axios.get('http://localhost:5050/customers')
       .then(response => {
         const phoneNumbers = response.data.map(customer => customer.phoneNumber);
         setUsedPhoneNumbers(phoneNumbers);
@@ -45,12 +44,12 @@ function CustomerForm() {
       setAlertMessage('Phone number already exists. Please use a different phone number.');
       return;
     }
-    axios.post('http://localhost:3005/customers', customerData)
+    axios.post('http://localhost:5050/customers', customerData)
       .then(response => {
         setAlertMessage('Customer added successfully.');
         setCustomerData({
-          firstName: '',
-          lastName: '',
+          fname: '',
+          lname: '',
           address: '',
           phoneNumber: '',
         });
@@ -73,23 +72,23 @@ function CustomerForm() {
           <Grid item xs={12} sm={6}>
             <TextField
               label="First Name"
-              name="firstName"
-              value={customerData.firstName}
+              name="fname"
+              value={customerData.fname}
               onChange={handleChange}
               fullWidth
               required
-              error={errorFields.includes('firstName')}
+              error={errorFields.includes('fname')}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
               label="Last Name"
-              name="lastName"
-              value={customerData.lastName}
+              name="lname"
+              value={customerData.lname}
               onChange={handleChange}
               fullWidth
               required
-              error={errorFields.includes('lastName')}
+              error={errorFields.includes('lname')}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
