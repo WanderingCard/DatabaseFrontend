@@ -1,32 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Grid, Typography, MenuItem, Alert } from '@mui/material';
+import { TextField, Button, Grid, Typography, Alert } from '@mui/material';
 import axios from 'axios';
 
 function NewCar() {
   const [carData, setCarData] = useState({
-    customerId: '',
     model: '',
-    trim: '',
-    year: '',
-    make: '',
-    vin: '',
+    licensePlate: '',
   });
-  const [customers, setCustomers] = useState([]);
   const [alertMessage, setAlertMessage] = useState('');
   const [errorFields, setErrorFields] = useState([]);
-
-  const availableModels = ['Truck', 'SUV', 'Sedan', 'Minivan', 'Convertible', 'Coupe', 'Sports Car'];
-  const topCarCompanies = ['Toyota', 'Volkswagen', 'Ford', 'Honda', 'General Motors', 'Nissan', 'BMW', 'Mercedes-Benz', 'Tesla', 'Hyundai', 'Volvo'];
+  const [cars, setCars] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:3005/customers')
+    fetchCars();
+  }, []);
+
+  const fetchCars = () => {
+    axios.get('http://localhost:5050/cars')
       .then(response => {
-        setCustomers(response.data);
+        setCars(response.data);
       })
       .catch(error => {
-        console.error('Error fetching customers:', error);
+        console.error('Error fetching cars:', error);
+        setAlertMessage('Error fetching cars: ' + error.message);
       });
-  }, []);
+  };
 
   const handleChange = (e) => {
     setCarData({
@@ -43,77 +41,31 @@ function NewCar() {
       setAlertMessage('Please fill in all required fields.');
       return;
     }
-    axios.post('http://localhost:3006/cars', carData)
+    axios.post('http://localhost:5050/cars', carData)
       .then(response => {
         setAlertMessage('Car added successfully');
         setCarData({
-          customerId: '',
           model: '',
-          trim: '',
-          year: '',
-          make: '',
-          vin: '',
+          licensePlate: '',
         });
+        fetchCars(); 
       })
       .catch(error => {
         console.error('Error adding car:', error);
-        setAlertMessage('Error adding customer: ' + error.message)
+        setAlertMessage('Error adding car: ' + error.message);
       });
   };
-
-  const years = [];
-  const currentYear = new Date().getFullYear();
-  for (let i = currentYear; i >= 1900; i--) {
-    years.push(i);
-  }
 
   return (
     <div style={{ backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '5px', marginTop: '20px' }}>
       <Typography variant="h5" component="h2" gutterBottom>
         New Car Form
       </Typography>
-      {alertMessage && <Alert severity="success">{alertMessage}</Alert>}
+      {alertMessage && <Alert severity="error">{alertMessage}</Alert>}
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <TextField
-              select
-              label="Customer"
-              name="customerId"
-              value={carData.customerId}
-              onChange={handleChange}
-              fullWidth
-              required
-              error={errorFields.includes('customer')}
-            >
-              {customers.map(customer => (
-                <MenuItem key={customer.id} value={customer.id}>
-                  {customer.firstName} {customer.lastName}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              select
-              label="Make"
-              name="make"
-              value={carData.make}
-              onChange={handleChange}
-              fullWidth
-              required
-              error={errorFields.includes('make')}
-            >
-              {topCarCompanies.map(company => (
-                <MenuItem key={company} value={company}>
-                  {company}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              select
               label="Model"
               name="model"
               value={carData.model}
@@ -121,52 +73,17 @@ function NewCar() {
               fullWidth
               required
               error={errorFields.includes('model')}
-            >
-              {availableModels.map(model => (
-                <MenuItem key={model} value={model}>
-                  {model}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Trim"
-              name="trim"
-              value={carData.trim}
-              onChange={handleChange}
-              fullWidth
-              required
-              error={errorFields.includes('trim')}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
-              select
-              label="Year"
-              name="year"
-              value={carData.year}
+              label="License Plate"
+              name="licensePlate"
+              value={carData.licensePlate}
               onChange={handleChange}
               fullWidth
               required
-              error={errorFields.includes('year')}
-            >
-              {years.map(year => (
-                <MenuItem key={year} value={year}>
-                  {year}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Vin #"
-              name="vin"
-              value={carData.vin}
-              onChange={handleChange}
-              fullWidth
-              required
-              error={errorFields.includes('vin')}
+              error={errorFields.includes('licensePlate')}
             />
           </Grid>
           <Grid item xs={12}>
@@ -176,6 +93,14 @@ function NewCar() {
           </Grid>
         </Grid>
       </form>
+      <Typography variant="h6" component="h3" gutterBottom style={{ marginTop: '20px' }}>
+        Cars
+      </Typography>
+      <ul>
+        {cars.map(car => (
+          <li key={car.id}>{car.model} - {car.licensePlate}</li>
+        ))}
+      </ul>
     </div>
   );
 }
