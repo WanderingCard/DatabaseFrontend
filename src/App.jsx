@@ -9,7 +9,64 @@ function App() {
   const [selectedTechnicians, setSelectedTechs] = useState([]);
   const [filterValue, setFilterValue] = useState("");
   const [technicians, setTechs] = useState([]);
-  const [selectedServiceID] = useState();
+  const [selectedServiceID, setSelectedService] = useState("");
+  const [selectedTechNames, setSelectedTechNames] = useState([]);
+
+  async function getTechName(techID) {
+    await fetch('http://localhost:5050/technicians/' + techID, {
+      method: 'GET'
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data.firstname + ' ' + data.lastname)
+        return (data.firstname + ' ' + data.lastname);
+      })
+  }
+
+  async function postService() {
+    var url = 'http://localhost:5050/services/'
+    var method = selectedServiceID === 'Add New Service' ? 'POST' : 'PATCH'
+    console.log(method);
+    if (selectedServiceID !== 'Add New Service') {
+      url += selectedServiceID
+    }
+    await fetch(url, {
+      method: method,
+      body: JSON.stringify({
+        serviceName: serviceName,
+        cost: serviceCost,
+        technicians: selectedTechnicians
+      }),
+      headers: {
+        'Content-type': 'application/json; charset=UTF-8',
+      }
+    })
+      .then((response) => response.json())
+      .then((json) => console.log(json))
+      .catch((err) => {
+        console.log(err.message)
+      })
+  }
+
+  useEffect(() => {
+    var names = []
+    if (selectedTechnicians.length !== 0) {
+      console.log('Selected Techs: ' + selectedTechnicians)
+      selectedTechnicians.forEach((tech) => {
+        console.log('tech: ' + tech)
+        var indexTech = technicians.findIndex(techy =>
+          tech === techy._id
+        )
+        console.log(indexTech);
+        var techInfo = technicians[indexTech];
+        console.log(techInfo);
+        var techName = techInfo['firstname'] + ' ' + techInfo['lastname'];
+        names.push(techName)
+      })
+      console.log(names);
+      setSelectedTechNames(names);
+    }
+  }, [selectedTechnicians])
 
   useEffect(() => {
     fetch('http://localhost:5050/technicians/', {
@@ -27,7 +84,7 @@ function App() {
 
   useEffect(() => {
     fetchAllData(false);
-  }, )
+  }, [])
 
   useEffect(() => {
     console.log(technicians)
@@ -73,7 +130,7 @@ function App() {
   }
 
   const postData = async () => {
-    await fetch ('http://localhost:5050/services/', {
+    await fetch('http://localhost:5050/services/', {
       method: 'POST',
       body: JSON.stringify({
         serviceName: serviceName,
@@ -84,11 +141,11 @@ function App() {
         'Content-type': 'application/json; charset=UTF-8',
       },
     })
-    .then((response) => response.json())
-    .then((json) => console.log(json))
-    .catch((err) => {
-      console.log(err.message)
-    })
+      .then((response) => response.json())
+      .then((json) => console.log(json))
+      .catch((err) => {
+        console.log(err.message)
+      })
   }
 
   const MenuProps = {
@@ -100,20 +157,56 @@ function App() {
     }
   }
 
+  useEffect(() => {
+    console.log(selectedServiceID)
+    // Set all fields to current value of the service
+    if (selectedServiceID !== '' && selectedServiceID !== 'Add New Service') {
+      fetch('http://localhost:5050/services/' + selectedServiceID, {
+        method: 'GET'
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          setServiceName(data.serviceName)
+          setServiceCost(data.cost)
+          setSelectedTechs(data.technicians)
+        })
+        .catch((err) => {
+          console.log(err.message);
+        });
+    } else if (selectedServiceID === 'Add New Service'){
+      setServiceName('');
+      setServiceCost(0.00);
+      setSelectedTechs([]);
+    }
+  }, [selectedServiceID])
+
   return (
-    <Grid container spacing ={3} style={{width:'50vw', height:'75vh', marginLeft:'25vw', marginTop:'12.5vh'}}>
+    <Grid container spacing={3} style={{ width: '50vw', height: '75vh', marginLeft: '25vw', marginTop: '12.5vh' }}>
       <Grid item xs={8}>
+        <InputLabel id='serviceSelectBox'>Service Selected</InputLabel>
         <Select
-
+          labelId='serviceSelectBox'
+          id='serviceSelect'
+          value={selectedServiceID}
+          onChange={(event) => {
+            setSelectedService(event.target.value);
+            console.log(event.target.key);
+          }}
+          fullWidth
+          MenuProps={MenuProps}
         >
-
+          {['', 'Add New Service', ...services].map((service) => (
+            <MenuItem key={service['_id'] ? service['_id'] : service} value={service['_id'] ? service['_id'] : service}>
+              {service['_id'] ? service['serviceName'] : service}
+            </MenuItem>
+          ))}
         </Select>
       </Grid>
       <Grid item xs={6}>
-        <TextField 
+        <TextField
           fullWidth
-          variant='outlined' 
-          label='Service Name' 
+          variant='outlined'
+          label='Service Name'
           value={serviceName}
           onChange={(event) => {
             setServiceName(event.target.value)
@@ -122,10 +215,10 @@ function App() {
       </Grid>
 
       <Grid item xs={6}>
-        <TextField 
+        <TextField
           fullWidth
-          variant='outlined' 
-          label='Service Cost' 
+          variant='outlined'
+          label='Service Cost'
           value={serviceCost}
           onChange={(event) => {
             setServiceCost(event.target.value)
@@ -143,20 +236,20 @@ function App() {
           onChange={(event) => {
             setSelectedTechs(event.target.value);
             console.log(event.target.value);
-          }}  
+          }}
           fullWidth
           MenuProps={MenuProps}
-          input={<OutlinedInput id='select-multiple-chip' label='chip'/>}
+          input={<OutlinedInput id='select-multiple-chip' label='chip' />}
           renderValue={(selected) => (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {selected.map((value) => (
-                <Chip key={value} label={value} />
+              {selectedTechNames.map((name) => (
+                <Chip key={name} label={name} />
               ))}
             </Box>
           )}
         >
           {technicians.map((tech) => (
-            <MenuItem key={tech['firstname']} value={tech['_id']}>
+            <MenuItem key={tech['_id']} value={tech['_id']}>
               {tech.firstname + " " + tech.lastname}
             </MenuItem>
           ))}
@@ -164,14 +257,14 @@ function App() {
       </Grid>
 
       <Grid item xs={4}>
-        <Button 
+        <Button
           fullWidth
           variant='contained'
           onClick={() => {
-            postData();
+            postService();
           }}
         >
-          Add Data
+          {selectedServiceID === '' || selectedServiceID === 'Add New Service' ? 'Add Service' : 'Save Changes'}
         </Button>
       </Grid>
       <Grid item xs={4}>
