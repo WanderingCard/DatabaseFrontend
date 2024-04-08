@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import ServiceCount from './ServiceCount'
+import ServiceCount from './ServiceCount';
 import { TextField, Button, Grid, Typography, Select, MenuItem, InputLabel, List, ListItem, ListItemText, Alert } from '@mui/material';
 
 const topServices = ['Oil Change', 'Tire Rotation', 'Brake Inspection', 'Engine Tune-up', 'Car Wash'];
@@ -11,6 +11,7 @@ function JobList() {
     service: '',
     date: '',
     technician: '',
+    status: '',
   });
   const [alertMessage, setAlertMessage] = useState('');
   const [errorFields, setErrorFields] = useState([]);
@@ -22,7 +23,7 @@ function JobList() {
   const [techniciansWithNoJobs, setTechniciansWithNoJobs] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:3006/cars')
+    axios.get('http://localhost:5050/cars')
       .then(response => {
         setCars(response.data);
       })
@@ -32,16 +33,12 @@ function JobList() {
   }, []);
 
   useEffect(() => {
-    axios.get('http://localhost:3008/technician')
+    axios.get('http://localhost:5050/technicians')
       .then(response => {
-        const formattedTechnicians = response.data.map(tech => ({
-          id: tech.id,
-          name: `${tech.fname} ${tech.lname}`
-        }));
-        setTechnicians(formattedTechnicians);
+        setTechnicians(response.data);
         // Filter technicians with no jobs
         const techniciansWithJobs = filteredJobs.map(job => job.technician);
-        const techniciansWithoutJobs = formattedTechnicians.filter(tech => !techniciansWithJobs.includes(tech.name));
+        const techniciansWithoutJobs = response.data.filter(tech => !techniciansWithJobs.includes(tech.id));
         setTechniciansWithNoJobs(techniciansWithoutJobs);
       })
       .catch(error => {
@@ -64,7 +61,7 @@ function JobList() {
       setAlertMessage('Please fill in all required fields.');
       return;
     }
-    axios.post('http://localhost:3007/jobs', jobData)
+    axios.post('http://localhost:5050/jobs', jobData)
       .then(response => {
         setAlertMessage('Job added successfully.');
         setJobData({
@@ -72,7 +69,9 @@ function JobList() {
           service: '',
           date: '',
           technician: '',
+          status: '',
         });
+        setFetchJobs(true);
       })
       .catch(error => {
         console.error('Error adding job:', error);
@@ -82,7 +81,7 @@ function JobList() {
 
   useEffect(() => {
     if (filterDate && fetchJobs) {
-      axios.get(`http://localhost:3007/jobs?date=${filterDate}`)
+      axios.get(`http://localhost:5050/jobs?date=${filterDate}`)
         .then(response => {
           setFilteredJobs(response.data);
           setAlertMessage(response.data.length === 0 ? 'No jobs found for the selected date' : '');
@@ -124,7 +123,7 @@ function JobList() {
               </MenuItem>
               {cars.map(car => (
                 <MenuItem key={car.id} value={car.id}>
-                  {car.make} - {car.model}
+                  {car.model} - {car.licensePlate}
                 </MenuItem>
               ))}
             </Select>
@@ -175,11 +174,22 @@ function JobList() {
                 Select a technician
               </MenuItem>
               {technicians.map(technician => (
-                <MenuItem key={technician.id} value={technician.name}>
-                  {technician.name}
+                <MenuItem key={technician._id} value={technician.firstname}>
+                  {technician.firstname} {technician.lastname}
                 </MenuItem>
               ))}
             </Select>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <InputLabel>Status</InputLabel>
+            <TextField
+              name="status"
+              value={jobData.status}
+              onChange={handleChange}
+              fullWidth
+              required
+              error={errorFields.includes('status')}
+            />
           </Grid>
           <Grid item xs={12}>
             <Button type="submit" variant="contained" color="primary">
@@ -207,9 +217,9 @@ function JobList() {
             Technicians With No Jobs
           </Typography>
           <List>
-            {techniciansWithNoJobs.map((technician, index) => (
-              <ListItem key={index}>
-                <ListItemText primary={technician.name} />
+            {techniciansWithNoJobs.map(technician => (
+              <ListItem key={technician._id}>
+                <ListItemText primary={`${technician.firstname} ${technician.lastname}`} />
               </ListItem>
             ))}
           </List>
@@ -217,14 +227,13 @@ function JobList() {
       )}
       {filteredJobs.length > 0 && (
         <div>
-          <
-          Typography variant="h4" component="h2" gutterBottom>
+          <Typography variant="h4" component="h2" gutterBottom>
             Jobs for Selected Date
           </Typography>
           <List>
-            {filteredJobs.map((job) => (
+            {filteredJobs.map(job => (
               <ListItem key={job.id} style={{ border: '1px solid #ccc', borderRadius: '5px', marginBottom: '10px' }}>
-                <ListItemText primary={`${job.car} - ${job.service}`} secondary={`Date: ${job.date}, Technician: ${job.technician}`} />
+                <ListItemText primary={`${job.car.model} - ${job.car.licensePlate} - ${job.service}`} secondary={`Date: ${job.date}, Technician: ${job.technician.firstname} ${job.technician.lastname}, Status: ${job.status}`} />
               </ListItem>
             ))}
           </List>
