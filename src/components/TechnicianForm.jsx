@@ -6,8 +6,8 @@ const topServices = ['Oil Change', 'Tire Rotation', 'Brake Inspection', 'Engine 
 
 function TechnicianForm() {
   const [technicianData, setTechnicianData] = useState({
-    fname: '',
-    lname: '',
+    firstname: '',
+    lastname: '',
   });
   const [technicians, setTechnicians] = useState([]);
 
@@ -30,21 +30,21 @@ function TechnicianForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { fname, lname } = technicianData;
-    if (!fname || !lname) {
+    const { firstname, lastname } = technicianData;
+    if (!firstname || !lastname) {
       alert('Please fill in all required fields.');
       return;
     }
     const newTechnician = {
-      fname,
-      lname,
+      firstname,
+      lastname,
     };
     axios.post('http://localhost:5050/technicians', newTechnician)
       .then(response => {
         setTechnicians([...technicians, response.data]);
         setTechnicianData({
-          fname: '',
-          lname: '',
+          firstname: '',
+          lastname: '',
         });
       })
       .catch(error => {
@@ -63,8 +63,8 @@ function TechnicianForm() {
           <Grid item xs={12} sm={6}>
             <TextField
               label="First Name"
-              name="fname"
-              value={technicianData.fname}
+              name="firstname"
+              value={technicianData.firstname}
               onChange={handleChange}
               fullWidth
               required
@@ -73,8 +73,8 @@ function TechnicianForm() {
           <Grid item xs={12} sm={6}>
             <TextField
               label="Last Name"
-              name="lname"
-              value={technicianData.lname}
+              name="lastname"
+              value={technicianData.lastname}
               onChange={handleChange}
               fullWidth
               required
