@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { TextField, Button, Grid, Typography, Select, MenuItem, InputLabel, List, ListItem, ListItemText, Alert } from '@mui/material';
-
-const topServices = ['Oil Change', 'Tire Rotation', 'Brake Inspection', 'Engine Tune-up', 'Car Wash'];
+import { TextField, Button, Grid, Typography, Select, MenuItem, InputLabel, Alert } from '@mui/material';
 
 function JobList() {
   const [jobData, setJobData] = useState({
@@ -15,6 +13,7 @@ function JobList() {
   const [errorFields, setErrorFields] = useState([]);
   const [cars, setCars] = useState([]);
   const [technicians, setTechnicians] = useState([]);
+  const [services, setServices] = useState([]);
   const [fetchJobs, setFetchJobs] = useState(false);
 
   useEffect(() => {
@@ -34,6 +33,16 @@ function JobList() {
       })
       .catch(error => {
         console.error('Error fetching technicians:', error);
+      });
+  }, []);
+
+  useEffect(() => {
+    axios.get('http://localhost:5050/services')
+      .then(response => {
+        setServices(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching services:', error);
       });
   }, []);
 
@@ -127,9 +136,9 @@ function JobList() {
               <MenuItem value="" disabled>
                 Select a service
               </MenuItem>
-              {topServices.map(service => (
-                <MenuItem key={service} value={service}>
-                  {service}
+              {services.map(service => (
+                <MenuItem key={service._id} value={service._id}>
+                  {service.serviceName} - ${service.cost}
                 </MenuItem>
               ))}
             </Select>
@@ -148,7 +157,7 @@ function JobList() {
                 Select a technician
               </MenuItem>
               {technicians.map(technician => (
-                <MenuItem key={technician._id} value={technician.firstname}>
+                <MenuItem key={technician._id} value={technician._id}>
                   {technician.firstname} {technician.lastname}
                 </MenuItem>
               ))}
