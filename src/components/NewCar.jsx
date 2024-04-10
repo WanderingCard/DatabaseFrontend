@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Grid, Typography, Alert } from '@mui/material';
+import { TextField, Button, Grid, Typography, Alert, MenuItem } from '@mui/material';
 import axios from 'axios';
 
 function NewCar() {
@@ -10,9 +10,12 @@ function NewCar() {
   const [alertMessage, setAlertMessage] = useState('');
   const [errorFields, setErrorFields] = useState([]);
   const [cars, setCars] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [selectedCustomer, setSelectedCustomer] = useState('');
 
   useEffect(() => {
     fetchCars();
+    fetchCustomers();
   }, []);
 
   const fetchCars = () => {
@@ -26,6 +29,17 @@ function NewCar() {
       });
   };
 
+  const fetchCustomers = () => {
+    axios.get('http://localhost:5050/customers')
+      .then(response => {
+        setCustomers(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching customers:', error);
+        setAlertMessage('Error fetching customers: ' + error.message);
+      });
+  };
+
   const handleChange = (e) => {
     setCarData({
       ...carData,
@@ -33,21 +47,30 @@ function NewCar() {
     });
   };
 
+  const handleCustomerChange = (e) => {
+    setSelectedCustomer(e.target.value);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const emptyFields = Object.keys(carData).filter(key => carData[key] === '');
-    if (emptyFields.length > 0) {
+    if (emptyFields.length > 0 || !selectedCustomer) {
       setErrorFields(emptyFields);
-      setAlertMessage('Please fill in all required fields.');
+      setAlertMessage('Please fill in all required fields and select a customer.');
       return;
     }
-    axios.post('http://localhost:5050/cars', carData)
+    const newCarData = {
+      ...carData,
+      customerId: selectedCustomer,
+    };
+    axios.post('http://localhost:5050/cars', newCarData)
       .then(response => {
         setAlertMessage('Car added successfully');
         setCarData({
           model: '',
           licensePlate: '',
         });
+        setSelectedCustomer('');
         fetchCars(); 
       })
       .catch(error => {
@@ -77,6 +100,23 @@ function NewCar() {
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
+              select
+              label="Select Customer"
+              value={selectedCustomer}
+              onChange={handleCustomerChange}
+              fullWidth
+              required
+              error={!selectedCustomer}
+            >
+              {customers.map(customer => (
+                <MenuItem key={customer._id} value={customer._id}>
+                  {customer.fname} {customer.lname}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
               label="License Plate"
               name="licensePlate"
               value={carData.licensePlate}
@@ -98,7 +138,9 @@ function NewCar() {
       </Typography>
       <ul>
         {cars.map(car => (
-          <li key={car.id}>{car.model} - {car.licensePlate}</li>
+          <li key={car.id}>
+            {car.model} - {car.licensePlate} (Customer: {car.customerId})
+          </li>
         ))}
       </ul>
     </div>

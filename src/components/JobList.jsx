@@ -47,10 +47,18 @@ function JobList() {
   }, [filteredJobs]);
 
   const handleChange = (e) => {
-    setJobData({
-      ...jobData,
-      [e.target.name]: e.target.value,
-    });
+    if (e.target.name === 'car') {
+      const selectedCar = cars.find(car => car.id === e.target.value);
+      setJobData({
+        ...jobData,
+        car: selectedCar ? selectedCar.id : '', // Set the car ID
+      });
+    } else {
+      setJobData({
+        ...jobData,
+        [e.target.name]: e.target.value,
+      });
+    }
   };
 
   const handleSubmit = (e) => {
@@ -122,7 +130,7 @@ function JobList() {
                 Select a car
               </MenuItem>
               {cars.map(car => (
-                <MenuItem key={car.id} value={car.id}>
+                <MenuItem key={car._id} value={car._id}>
                   {car.model} - {car.licensePlate}
                 </MenuItem>
               ))}
