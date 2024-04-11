@@ -5,6 +5,7 @@ import CustomerForm from './components/CustomerForm';
 import NewCar from './components/NewCar';
 import JobList from './components/JobList';
 import TechnicianForm from './components/TechnicianForm';
+import ServiceForm from './components/ServiceForm';
 
 function App() {
   const [activeSection, setActiveSection] = useState('customers');
@@ -85,6 +86,13 @@ function App() {
             </ul>
           </div>
         );
+      case 'service':
+        return (
+          <div>
+            <h2>Service</h2>
+            <ServiceForm />
+          </div>
+        )
       case 'technician':
         return (
           <div>
