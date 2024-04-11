@@ -1,32 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Grid, Typography, MenuItem, Alert } from '@mui/material';
+import { TextField, Button, Grid, Typography, Alert, MenuItem } from '@mui/material';
 import axios from 'axios';
 
 function NewCar() {
   const [carData, setCarData] = useState({
-    customerId: '',
     model: '',
-    trim: '',
-    year: '',
-    make: '',
-    vin: '',
+    licensePlate: '',
   });
-  const [customers, setCustomers] = useState([]);
   const [alertMessage, setAlertMessage] = useState('');
   const [errorFields, setErrorFields] = useState([]);
-
-  const availableModels = ['Truck', 'SUV', 'Sedan', 'Minivan', 'Convertible', 'Coupe', 'Sports Car'];
-  const topCarCompanies = ['Toyota', 'Volkswagen', 'Ford', 'Honda', 'General Motors', 'Nissan', 'BMW', 'Mercedes-Benz', 'Tesla', 'Hyundai', 'Volvo'];
+  const [cars, setCars] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [selectedCustomer, setSelectedCustomer] = useState('');
 
   useEffect(() => {
-    axios.get('http://localhost:3005/customers')
+    fetchCars();
+    fetchCustomers();
+  }, []);
+
+  const fetchCars = () => {
+    axios.get('http://localhost:5050/cars')
+      .then(response => {
+        setCars(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching cars:', error);
+        setAlertMessage('Error fetching cars: ' + error.message);
+      });
+  };
+
+  const fetchCustomers = () => {
+    axios.get('http://localhost:5050/customers')
       .then(response => {
         setCustomers(response.data);
       })
       .catch(error => {
         console.error('Error fetching customers:', error);
+        setAlertMessage('Error fetching customers: ' + error.message);
       });
-  }, []);
+  };
 
   const handleChange = (e) => {
     setCarData({
@@ -35,85 +47,48 @@ function NewCar() {
     });
   };
 
+  const handleCustomerChange = (e) => {
+    setSelectedCustomer(e.target.value);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const emptyFields = Object.keys(carData).filter(key => carData[key] === '');
-    if (emptyFields.length > 0) {
+    if (emptyFields.length > 0 || !selectedCustomer) {
       setErrorFields(emptyFields);
-      setAlertMessage('Please fill in all required fields.');
+      setAlertMessage('Please fill in all required fields and select a customer.');
       return;
     }
-    axios.post('http://localhost:3006/cars', carData)
+    const newCarData = {
+      ...carData,
+      customerId: selectedCustomer,
+    };
+    axios.post('http://localhost:5050/cars', newCarData)
       .then(response => {
         setAlertMessage('Car added successfully');
         setCarData({
-          customerId: '',
           model: '',
-          trim: '',
-          year: '',
-          make: '',
-          vin: '',
+          licensePlate: '',
         });
+        setSelectedCustomer('');
+        fetchCars(); 
       })
       .catch(error => {
         console.error('Error adding car:', error);
-        setAlertMessage('Error adding customer: ' + error.message)
+        setAlertMessage('Error adding car: ' + error.message);
       });
   };
-
-  const years = [];
-  const currentYear = new Date().getFullYear();
-  for (let i = currentYear; i >= 1900; i--) {
-    years.push(i);
-  }
 
   return (
     <div style={{ backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '5px', marginTop: '20px' }}>
       <Typography variant="h5" component="h2" gutterBottom>
         New Car Form
       </Typography>
-      {alertMessage && <Alert severity="success">{alertMessage}</Alert>}
+      {alertMessage && <Alert severity="error">{alertMessage}</Alert>}
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <TextField
-              select
-              label="Customer"
-              name="customerId"
-              value={carData.customerId}
-              onChange={handleChange}
-              fullWidth
-              required
-              error={errorFields.includes('customer')}
-            >
-              {customers.map(customer => (
-                <MenuItem key={customer.id} value={customer.id}>
-                  {customer.firstName} {customer.lastName}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              select
-              label="Make"
-              name="make"
-              value={carData.make}
-              onChange={handleChange}
-              fullWidth
-              required
-              error={errorFields.includes('make')}
-            >
-              {topCarCompanies.map(company => (
-                <MenuItem key={company} value={company}>
-                  {company}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              select
               label="Model"
               name="model"
               value={carData.model}
@@ -121,52 +96,34 @@ function NewCar() {
               fullWidth
               required
               error={errorFields.includes('model')}
-            >
-              {availableModels.map(model => (
-                <MenuItem key={model} value={model}>
-                  {model}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Trim"
-              name="trim"
-              value={carData.trim}
-              onChange={handleChange}
-              fullWidth
-              required
-              error={errorFields.includes('trim')}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
               select
-              label="Year"
-              name="year"
-              value={carData.year}
-              onChange={handleChange}
+              label="Select Customer"
+              value={selectedCustomer}
+              onChange={handleCustomerChange}
               fullWidth
               required
-              error={errorFields.includes('year')}
+              error={!selectedCustomer}
             >
-              {years.map(year => (
-                <MenuItem key={year} value={year}>
-                  {year}
+              {customers.map(customer => (
+                <MenuItem key={customer._id} value={customer._id}>
+                  {customer.fname} {customer.lname}
                 </MenuItem>
               ))}
             </TextField>
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Vin #"
-              name="vin"
-              value={carData.vin}
+              label="License Plate"
+              name="licensePlate"
+              value={carData.licensePlate}
               onChange={handleChange}
               fullWidth
               required
-              error={errorFields.includes('vin')}
+              error={errorFields.includes('licensePlate')}
             />
           </Grid>
           <Grid item xs={12}>
@@ -176,6 +133,16 @@ function NewCar() {
           </Grid>
         </Grid>
       </form>
+      <Typography variant="h6" component="h3" gutterBottom style={{ marginTop: '20px' }}>
+        Cars
+      </Typography>
+      <ul>
+        {cars.map(car => (
+          <li key={car.id}>
+            {car.model} - {car.licensePlate} (Customer: {car.customerId})
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

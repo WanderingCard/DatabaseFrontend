@@ -1,28 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import ServiceCount from './ServiceCount'
-import { TextField, Button, Grid, Typography, Select, MenuItem, InputLabel, List, ListItem, ListItemText, Alert } from '@mui/material';
-
-const topServices = ['Oil Change', 'Tire Rotation', 'Brake Inspection', 'Engine Tune-up', 'Car Wash'];
+import { TextField, Button, Grid, Typography, Select, MenuItem, InputLabel, Alert } from '@mui/material';
 
 function JobList() {
   const [jobData, setJobData] = useState({
     car: '',
     service: '',
-    date: '',
     technician: '',
+    status: '',
   });
   const [alertMessage, setAlertMessage] = useState('');
   const [errorFields, setErrorFields] = useState([]);
   const [cars, setCars] = useState([]);
-  const [filteredJobs, setFilteredJobs] = useState([]);
   const [technicians, setTechnicians] = useState([]);
-  const [filterDate, setFilterDate] = useState('');
+  const [services, setServices] = useState([]);
   const [fetchJobs, setFetchJobs] = useState(false);
-  const [techniciansWithNoJobs, setTechniciansWithNoJobs] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:3006/cars')
+    axios.get('http://localhost:5050/cars')
       .then(response => {
         setCars(response.data);
       })
@@ -32,22 +27,24 @@ function JobList() {
   }, []);
 
   useEffect(() => {
-    axios.get('http://localhost:3008/technician')
+    axios.get('http://localhost:5050/technicians')
       .then(response => {
-        const formattedTechnicians = response.data.map(tech => ({
-          id: tech.id,
-          name: `${tech.fname} ${tech.lname}`
-        }));
-        setTechnicians(formattedTechnicians);
-        // Filter technicians with no jobs
-        const techniciansWithJobs = filteredJobs.map(job => job.technician);
-        const techniciansWithoutJobs = formattedTechnicians.filter(tech => !techniciansWithJobs.includes(tech.name));
-        setTechniciansWithNoJobs(techniciansWithoutJobs);
+        setTechnicians(response.data);
       })
       .catch(error => {
         console.error('Error fetching technicians:', error);
       });
-  }, [filteredJobs]);
+  }, []);
+
+  useEffect(() => {
+    axios.get('http://localhost:5050/services')
+      .then(response => {
+        setServices(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching services:', error);
+      });
+  }, []);
 
   const handleChange = (e) => {
     setJobData({
@@ -64,15 +61,21 @@ function JobList() {
       setAlertMessage('Please fill in all required fields.');
       return;
     }
-    axios.post('http://localhost:3007/jobs', jobData)
+    axios.post('http://localhost:5050/jobs', {
+      car_id: jobData.car,
+      service_id: jobData.service,
+      technician_id: jobData.technician,
+      status: jobData.status
+    })
       .then(response => {
         setAlertMessage('Job added successfully.');
         setJobData({
           car: '',
           service: '',
-          date: '',
           technician: '',
+          status: '',
         });
+        setFetchJobs(true);
       })
       .catch(error => {
         console.error('Error adding job:', error);
@@ -81,26 +84,17 @@ function JobList() {
   };
 
   useEffect(() => {
-    if (filterDate && fetchJobs) {
-      axios.get(`http://localhost:3007/jobs?date=${filterDate}`)
+    if (fetchJobs) {
+      axios.get('http://localhost:5050/jobs')
         .then(response => {
-          setFilteredJobs(response.data);
-          setAlertMessage(response.data.length === 0 ? 'No jobs found for the selected date' : '');
+          // Handle the fetched jobs as needed
           setFetchJobs(false);
         })
         .catch(error => {
-          console.error('Error fetching jobs for the given date:', error);
-          setAlertMessage('Error fetching jobs for the given date');
-          setFilteredJobs([]);
-          setFetchJobs(false);
+          console.error('Error fetching jobs:', error);
         });
     }
-  }, [filterDate, fetchJobs]);
-
-  const handleDateChange = (e) => {
-    setFilterDate(e.target.value);
-    setFetchJobs(true); // Set to true to fetch jobs when date is changed
-  };
+  }, [fetchJobs]);
 
   return (
     <div>
@@ -123,8 +117,8 @@ function JobList() {
                 Select a car
               </MenuItem>
               {cars.map(car => (
-                <MenuItem key={car.id} value={car.id}>
-                  {car.make} - {car.model}
+                <MenuItem key={car._id} value={car._id}>
+                  {car.model} - {car.licensePlate}
                 </MenuItem>
               ))}
             </Select>
@@ -142,24 +136,12 @@ function JobList() {
               <MenuItem value="" disabled>
                 Select a service
               </MenuItem>
-              {topServices.map(service => (
-                <MenuItem key={service} value={service}>
-                  {service}
+              {services.map(service => (
+                <MenuItem key={service._id} value={service._id}>
+                  {service.serviceName} - ${service.cost}
                 </MenuItem>
               ))}
             </Select>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <InputLabel>Date</InputLabel>
-            <TextField
-              type="date"
-              name="date"
-              value={jobData.date}
-              onChange={handleChange}
-              fullWidth
-              required
-              error={errorFields.includes('date')}
-            />
           </Grid>
           <Grid item xs={12} sm={6}>
             <InputLabel>Technician</InputLabel>
@@ -175,61 +157,30 @@ function JobList() {
                 Select a technician
               </MenuItem>
               {technicians.map(technician => (
-                <MenuItem key={technician.id} value={technician.name}>
-                  {technician.name}
+                <MenuItem key={technician._id} value={technician._id}>
+                  {technician.firstname} {technician.lastname}
                 </MenuItem>
               ))}
             </Select>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <InputLabel>Status</InputLabel>
+            <TextField
+              name="status"
+              value={jobData.status}
+              onChange={handleChange}
+              fullWidth
+              required
+              error={errorFields.includes('status')}
+            />
           </Grid>
           <Grid item xs={12}>
             <Button type="submit" variant="contained" color="primary">
               Add Job
             </Button>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <InputLabel>Date Filter</InputLabel>
-            <TextField
-              type="date"
-              label=""
-              value={filterDate}
-              onChange={handleDateChange}
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <ServiceCount topServices={topServices} />
-          </Grid>
         </Grid>
       </form>
-      {techniciansWithNoJobs.length > 0 && (
-        <div>
-          <Typography variant="h4" component="h2" gutterBottom>
-            Technicians With No Jobs
-          </Typography>
-          <List>
-            {techniciansWithNoJobs.map((technician, index) => (
-              <ListItem key={index}>
-                <ListItemText primary={technician.name} />
-              </ListItem>
-            ))}
-          </List>
-        </div>
-      )}
-      {filteredJobs.length > 0 && (
-        <div>
-          <
-          Typography variant="h4" component="h2" gutterBottom>
-            Jobs for Selected Date
-          </Typography>
-          <List>
-            {filteredJobs.map((job) => (
-              <ListItem key={job.id} style={{ border: '1px solid #ccc', borderRadius: '5px', marginBottom: '10px' }}>
-                <ListItemText primary={`${job.car} - ${job.service}`} secondary={`Date: ${job.date}, Technician: ${job.technician}`} />
-              </ListItem>
-            ))}
-          </List>
-        </div>
-      )}
       {alertMessage && <Alert severity="info">{alertMessage}</Alert>}
     </div>
   );

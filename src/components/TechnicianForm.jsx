@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { TextField, Button, Grid, Typography, Table, TableContainer, TableHead, TableRow, TableCell, TableBody, Select, MenuItem, InputLabel } from '@mui/material';
+import { TextField, Button, Grid, Typography, Table, TableContainer, TableHead, TableRow, TableCell, TableBody, Paper } from '@mui/material';
 
 const topServices = ['Oil Change', 'Tire Rotation', 'Brake Inspection', 'Engine Tune-up', 'Car Wash'];
 
 function TechnicianForm() {
   const [technicianData, setTechnicianData] = useState({
-    fname: '',
-    lname: '',
-    services: [],
+    firstname: '',
+    lastname: '',
   });
   const [technicians, setTechnicians] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:3008/technician')
+    axios.get('http://localhost:5050/technicians')
       .then(response => {
         setTechnicians(response.data);
       })
@@ -31,23 +30,21 @@ function TechnicianForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { fname, lname, services } = technicianData;
-    if (!fname || !lname || services.length === 0) {
+    const { firstname, lastname } = technicianData;
+    if (!firstname || !lastname) {
       alert('Please fill in all required fields.');
       return;
     }
     const newTechnician = {
-      fname,
-      lname,
-      services,
+      firstname,
+      lastname,
     };
-    axios.post('http://localhost:3008/technician', newTechnician)
+    axios.post('http://localhost:5050/technicians', newTechnician)
       .then(response => {
         setTechnicians([...technicians, response.data]);
         setTechnicianData({
-          fname: '',
-          lname: '',
-          services: [],
+          firstname: '',
+          lastname: '',
         });
       })
       .catch(error => {
@@ -57,17 +54,17 @@ function TechnicianForm() {
   };
 
   return (
-    <div style={{ backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '5px', marginTop: '20px' }}>
+    <Paper style={{ padding: '20px', borderRadius: '5px', marginTop: '20px' }}>
       <Typography variant="h5" component="h2" gutterBottom>
         Add Technician
       </Typography>
       <form onSubmit={handleSubmit}>
-        <Grid container spacing={2}>
+        <Grid container spacing={2} justifyContent="center">
           <Grid item xs={12} sm={6}>
             <TextField
               label="First Name"
-              name="fname"
-              value={technicianData.fname}
+              name="firstname"
+              value={technicianData.firstname}
               onChange={handleChange}
               fullWidth
               required
@@ -76,30 +73,12 @@ function TechnicianForm() {
           <Grid item xs={12} sm={6}>
             <TextField
               label="Last Name"
-              name="lname"
-              value={technicianData.lname}
+              name="lastname"
+              value={technicianData.lastname}
               onChange={handleChange}
               fullWidth
               required
             />
-          </Grid>
-          <Grid item xs={12}>
-            <InputLabel id="services-label">Services</InputLabel>
-            <Select
-              labelId="services-label"
-              id="services"
-              multiple
-              value={technicianData.services}
-              onChange={(e) => setTechnicianData({ ...technicianData, services: e.target.value })}
-              fullWidth
-              required
-            >
-              {topServices.map((service, index) => (
-                <MenuItem key={index} value={service}>
-                  {service}
-                </MenuItem>
-              ))}
-            </Select>
           </Grid>
           <Grid item xs={12}>
             <Button type="submit" variant="contained" color="primary">
@@ -111,27 +90,25 @@ function TechnicianForm() {
       <Typography variant="h5" component="h2" gutterBottom style={{ marginTop: '20px' }}>
         Technician List
       </Typography>
-      <TableContainer>
+      <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell>First Name</TableCell>
               <TableCell>Last Name</TableCell>
-              <TableCell>Services</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {technicians.map((technician, index) => (
               <TableRow key={index}>
-                <TableCell>{technician.fname}</TableCell>
-                <TableCell>{technician.lname}</TableCell>
-                <TableCell>{technician.services.join(', ')}</TableCell>
+                <TableCell>{technician.firstname}</TableCell>
+                <TableCell>{technician.lastname}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
-    </div>
+    </Paper>
   );
 }
 
