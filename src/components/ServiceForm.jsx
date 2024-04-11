@@ -41,6 +41,12 @@ function ServiceForm() {
         setAlertMessage(selectedServiceID === 'Add New Service' ? 'Successfully Added New Service' : 'Changes Saved');
         setShowAlert(true);
         fetchAllData();
+        if(selectedServiceID === 'Add New Service') {
+          setServiceName('');
+          setServiceCost(0);
+          setSelectedTechs([]);
+          setSelectedTechNames([]);
+        }
       })
       .catch((err) => {
         console.log(err.message)
@@ -192,7 +198,7 @@ function ServiceForm() {
 
   return (
     <div>
-      <Grid container spacing={3} style={{ width: '50vw', height: '75vh', marginLeft: '25vw', marginTop: '12.5vh' }}>
+      <Grid container spacing={3} style={{ width: '50vw', height: '75vh', backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '5px', marginTop: '20px'}}>
         <Grid item xs={12}>
           <InputLabel id='serviceSelectBox'>Service Selected</InputLabel>
           <Select
@@ -292,10 +298,10 @@ function ServiceForm() {
           </Button>
         </Grid>
         <Grid item xs={12}>
-          <TableContainer component={Paper}>
-            <Table fullWidth>
+          <TableContainer component={Paper} style={{maxHeight: '250px'}} sx={{overflowX: 'hidden', overflowY:'scroll'}} fullWidth>
+            <Table fullWidth stickyHeader>
               <TableHead>
-                <TableRow>
+                <TableRow style={{backgroundColor: '#'}}>
                   <TableCell>Service Name</TableCell>
                   <TableCell>Service Cost</TableCell>
                   <TableCell>Qualified Technicians</TableCell>

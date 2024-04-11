@@ -61,6 +61,7 @@ function App() {
         <button onClick={() => setActiveSection('customers')}>Customers</button>
         <button onClick={() => setActiveSection('cars')}>Cars</button>
         <button onClick={() => setActiveSection('jobs')}>Jobs</button>
+        <button onClick={() => setActiveSection('service')}> Services </button>
         <button onClick={() => setActiveSection('technician')}>Technician</button>
       </div>
       {renderSection()}
