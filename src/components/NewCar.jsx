@@ -73,34 +73,46 @@ function NewCar() {
           model: '',
           licensePlate: '',
         });
-        setSelectedCustomer('');
+        // setSelectedCustomer('');
+        console.log(response);
+        updateCustomerCars(selectedCustomer, response.data.insertedId);
         fetchCars(); 
-        axios.get(`http://localhost:5050/customers/${selectedCustomer}`)
-          .then(customerResponse => {
-            const existingCustomerData = customerResponse.data;
-            const updatedCars = [...(existingCustomerData.cars || []), response.data.model]; 
-            axios.patch(`http://localhost:5050/customers/${selectedCustomer}`, {
-              ...existingCustomerData, 
-              cars: updatedCars
-            })
-            .then(() => {
-              console.log('Customer cars updated successfully');
-            })
-            .catch(error => {
-              console.error('Error updating customer cars:', error);
-              setAlertMessage('Error updating customer cars: ' + error.message);
-            });
-          })
-          .catch(error => {
-            console.error('Error fetching customer data:', error);
-            setAlertMessage('Error fetching customer data: ' + error.message);
-          });
+        setSelectedCustomer('');
+        setCarData({
+          model: '',
+          licensePlate: '',})
       })
       .catch(error => {
         console.error('Error adding car:', error);
         setAlertMessage('Error adding car: ' + error.message);
       });
   };
+  
+  function updateCustomerCars(cust, carId) {
+    console.log(cust);
+    console.log(carId);
+    axios.get('http://localhost:5050/customers/' + cust)
+      .then((response) => {
+        console.log('Sucessfully fetched customer data')
+        console.log(response);
+        var carList = response.data.cars ? response.data.cars : [];
+        console.log(carList);
+        carList.push(carId);
+        axios.patch('http://localhost:5050/customers/' + cust, {
+          ...response.data,
+          cars: carList
+        })
+          .then((response) => {
+            console.log('Successfully Updated Cars')
+          })
+          .catch((error) => {
+            console.error('Error patching data: ', error);
+          })
+      })
+      .catch((error) => {
+        console.log('Error Fetching Customer Data: ', error);
+      })
+  }
 
   const handleDeleteConfirmationOpen = (car) => {
     setCarToDelete(car);
