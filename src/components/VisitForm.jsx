@@ -39,6 +39,11 @@ function VisitForm() {
     fetchData();
   }, []);
 
+  async function getVisits() {
+    const data = await axios.get('http://localhost:5050/visit');
+    setVisits(data.data);
+  }
+
   const handleDateChange = (event) => {
     setSelectedDate(event.target.value);
   };
@@ -137,6 +142,7 @@ function VisitForm() {
   
       if (response.status === 200) {
         setShowAlert(true);
+        getVisits();
         setAlertMessage('Visit successfully added!');
         setAlertError(false);
       } else {
