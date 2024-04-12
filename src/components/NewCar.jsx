@@ -72,6 +72,25 @@ function NewCar() {
         });
         setSelectedCustomer('');
         fetchCars(); 
+        axios.get(`http://localhost:5050/customers/${selectedCustomer}`)
+          .then(customerResponse => {
+            const existingCustomerData = customerResponse.data;
+            const updatedCars = [...(existingCustomerData.cars || []), response.data._id]; 
+            axios.patch(`http://localhost:5050/customers/${selectedCustomer}`, {
+              cars: updatedCars
+            })
+            .then(() => {
+              console.log('Customer cars updated successfully');
+            })
+            .catch(error => {
+              console.error('Error updating customer cars:', error);
+              setAlertMessage('Error updating customer cars: ' + error.message);
+            });
+          })
+          .catch(error => {
+            console.error('Error fetching customer data:', error);
+            setAlertMessage('Error fetching customer data: ' + error.message);
+          });
       })
       .catch(error => {
         console.error('Error adding car:', error);
