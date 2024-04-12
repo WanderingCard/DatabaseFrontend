@@ -145,13 +145,13 @@ function NewCar() {
   };
 
   function getCarOwner(carId) {
-    console.log(customers);
+    // console.log(customers);
     for (var cusIndex = 0; cusIndex < customers.length; cusIndex++) {
       var customerCars = customers[cusIndex].cars;
-      console.log(customerCars);
-      if (customerCars !== undefined) {
+      // console.log(customerCars);
+      if (customerCars !== null && customerCars !== undefined) {
         for (var carIndex = 0; carIndex < customerCars.length; carIndex++) {
-          console.log(customerCars[carIndex]._id);
+          // console.log(customerCars[carIndex]);
           if (customerCars[carIndex] === carId) {
             return customers[cusIndex].fname + ' ' + customers[cusIndex].lname;
           }
