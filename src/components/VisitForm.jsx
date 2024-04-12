@@ -10,10 +10,11 @@ function VisitForm() {
   const [technicians, setTechs] = useState([]);
   const [selectedServiceID, setSelectedService] = useState("");
   const [selectedTechNames, setSelectedTechNames] = useState([]);
+  const [cars, setCars] = useState([]);
 
+  const [customerCar, setCustomerCar] = useState([]);
   const [visits, setVisits] = useState([]);
   const [customers, setCustomers] = useState([]);
-  const [cars, setCars] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [jobSlots, setJobSlots] = useState(0);
   
@@ -219,6 +220,43 @@ function VisitForm() {
     return technicianNames.substring(0,technicianNames.length-2);
   }
 
+  useEffect(() => {
+    fetch('http://localhost:5050/cars/', {
+      method: 'GET'
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      setCars(data);
+    })
+  })
+
+  useEffect(() => {
+    if(selectedCustomer !== '') {
+      fetch('http://localhost:5050/customers/' + selectedCustomer, {
+        method: 'GET'
+      })
+      .then((response) => response.json())
+      .then((data) => {
+        var customerCarIds = data.cars;
+        var customerCards = [];
+        for (var i = 0; i < customerCarIds.length; i++) {
+          var found = false;
+          for (var a = 0; a < cars.length && !found; a++) {
+            if(cars[a]['_id'] === customerCarIds[i]) {
+              customerCards.push(cars[a]);
+              found = true;
+            }
+          }
+        }
+        setCustomerCar(customerCards);
+        console.log(data.cars);
+      })
+      .catch((err) => {
+        console.log(err.message);
+      })
+    }
+  }, [selectedCustomer])
+
   return (
     <div>
       <Grid container spacing={3} style={{ width: '50vw', height: '75vh', backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '5px', marginTop: '20px'}}>
@@ -227,7 +265,11 @@ function VisitForm() {
           <InputLabel id='customerLabel'>Customer</InputLabel>
           <Select
             fullWidth
-
+            labelId='customerLabel'
+            value={selectedCustomer}
+            onChange={(event) => {
+              setSelectedCustomer(event.target.value);
+            }}
           >
             {customers.map((customer) => (
               <MenuItem key={customer['_id']} value={customer['_id']}>
@@ -239,7 +281,20 @@ function VisitForm() {
         {/* Car */}
         <Grid item xs={6}>
           <InputLabel id='carLabel'>Car</InputLabel>
-
+          <Select
+            fullWidth
+            labelId='carLabel'
+            value={selectedCar}
+            onChange={(event) => {
+              setSelectedCar(event.target.value);
+            }}
+          >
+            {customerCar.map((car) => (
+              <MenuItem key={car['_id']} value={car['_id']}>
+                {car['model'] + ' - ' + car['licensePlate']}
+              </MenuItem>
+              ))}
+          </Select>
         </Grid>
 
         {/* Date */}
@@ -277,7 +332,7 @@ function VisitForm() {
           </Button>
         </Grid>
 
-        <Grid item xs={12}>
+        {/* <Grid item xs={12}>
           <TableContainer component={Paper} style={{maxHeight: '250px'}} sx={{overflowX: 'hidden', overflowY:'scroll'}} fullWidth>
             <Table fullWidth stickyHeader>
               <TableHead>
@@ -301,7 +356,7 @@ function VisitForm() {
               </TableBody>
             </Table>
           </TableContainer>
-        </Grid>
+        </Grid> */}
       </Grid>
       <Snackbar
         open={showAlert}
