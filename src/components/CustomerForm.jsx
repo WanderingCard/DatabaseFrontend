@@ -9,7 +9,6 @@ function CustomerForm() {
     lname: '',
     address: '',
     phoneNumber: '',
-    cars: ['6601ab7ac2bedc03b01741fe', '66141ad443ca74d07f9df799']
   });
   const [alertMessage, setAlertMessage] = useState('');
   const [errorFields, setErrorFields] = useState([]);
@@ -19,6 +18,10 @@ function CustomerForm() {
   const [customerToDelete, setCustomerToDelete] = useState(null);
 
   useEffect(() => {
+    updateCustomers();
+  }, []);
+
+  function updateCustomers() {
     axios.get('http://localhost:5050/customers')
       .then(response => {
         setCustomers(response.data);
@@ -28,7 +31,7 @@ function CustomerForm() {
       .catch(error => {
         console.error('Error fetching customers:', error);
       });
-  }, []);
+  }
 
   const handleChange = (e) => {
     setCustomerData({
@@ -52,16 +55,16 @@ function CustomerForm() {
     }
     axios.post('http://localhost:5050/customers', customerData)
       .then(response => {
+        setUsedPhoneNumbers([...usedPhoneNumbers, customerData.phoneNumber]);
         setAlertMessage('Customer added successfully.');
         setCustomerData({
           fname: '',
           lname: '',
           address: '',
           phoneNumber: '',
-          cars: ['6616a703fc8f2db0509a14eb']
+          cars: []
         });
-        setCustomers([...customers, response.data]); 
-        setUsedPhoneNumbers([...usedPhoneNumbers, response.data.phoneNumber]); 
+        updateCustomers();
       })
       .catch(error => {
         console.error('Error adding customer:', error);
