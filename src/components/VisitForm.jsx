@@ -71,9 +71,19 @@ function VisitForm() {
       .then((response) => response.json())
       .then((data) => {
         const customerCarIds = data.cars;
-        const customerCars = customerCarIds.map((carId) => {
-          return cars.find((car) => car._id === carId);
-        });
+        console.log(customerCarIds);
+        console.log(cars);
+        var validCar
+        var customerCars = [];
+
+
+        for (var i = 0; i < customerCarIds.length; i++) {
+          var foundObject = cars.find((car) => car._id === customerCarIds[i]);
+          if (foundObject !== undefined) {
+            customerCars.push(foundObject);
+          }
+        }
+        console.log(customerCars)
         setCustomerCar(customerCars);
       })
       .catch((error) => {
@@ -251,7 +261,7 @@ function VisitForm() {
                 {visit.job.map((job, jobIndex) => (
                   <li key={jobIndex}>
                     <Typography variant="body2">
-                      <strong>Service:</strong> {job.job_id ? job.job_id.serviceName : job.service_id.serviceName}, <strong>Technician:</strong> {job.technician_id}
+                      <strong>Service:</strong> {job.job_id ? job.job_id.serviceName : job.service.serviceName}, <strong>Technician:</strong> {job.technician_id}
                     </Typography>
                   </li>
                 ))}
