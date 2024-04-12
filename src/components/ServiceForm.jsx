@@ -301,7 +301,7 @@ function ServiceForm() {
           <TableContainer component={Paper} style={{maxHeight: '250px'}} sx={{overflowX: 'hidden', overflowY:'scroll'}} fullWidth>
             <Table fullWidth stickyHeader>
               <TableHead>
-                <TableRow style={{backgroundColor: '#'}}>
+                <TableRow style={{backgroundColor: '#f0f0f0'}}>
                   <TableCell>Service Name</TableCell>
                   <TableCell>Service Cost</TableCell>
                   <TableCell>Qualified Technicians</TableCell>
