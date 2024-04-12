@@ -8,6 +8,7 @@ function VisitForm() {
   const [alertMessage, setAlertMessage] = useState('');
   const [alertError, setAlertError] = useState(false);
   const [customers, setCustomers] = useState([]);
+  const [cars, setCars] = useState([]);
   const [customerCar, setCustomerCar] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState('');
   const [selectedCar, setSelectedCar] = useState('');
@@ -55,7 +56,7 @@ function VisitForm() {
     })
     .then((response) => response.json())
     .then((data) => {
-      setCustomerCar(data);
+      setCars(data);
     })
     .catch((error) => {
       console.error('Error fetching cars:', error);
@@ -70,16 +71,26 @@ function VisitForm() {
       .then((response) => response.json())
       .then((data) => {
         const customerCarIds = data.cars;
-        const customerCars = customerCarIds.map((carId) => {
-          return customerCar.find((car) => car._id === carId);
-        });
+        console.log(customerCarIds);
+        console.log(cars);
+        var validCar
+        var customerCars = [];
+
+
+        for (var i = 0; i < customerCarIds.length; i++) {
+          var foundObject = cars.find((car) => car._id === customerCarIds[i]);
+          if (foundObject !== undefined) {
+            customerCars.push(foundObject);
+          }
+        }
+        console.log(customerCars)
         setCustomerCar(customerCars);
       })
       .catch((error) => {
         console.error('Error fetching customer cars:', error);
       });
     }
-  }, [selectedCustomer, customerCar]);
+  }, [selectedCustomer]);
 
   const handleCustomerChange = (event) => {
     setSelectedCustomer(event.target.value);
@@ -111,12 +122,13 @@ function VisitForm() {
   const handleSubmit = async () => {
     try {
       const visitData = {
-        customer: selectedCustomer,
+        customer_id: selectedCustomer,
         date: selectedDate,
+        car_id: selectedCar,
         job: selectedServices.map((service, index) => ({
-          customer_id: selectedCustomer,
-          date: selectedDate,
-          job_id: service,
+          // customer_id: selectedCustomer,
+          // date: selectedDate,
+          service: service,
           technician_id: selectedTechnicians[index]
         }))
       };
@@ -249,7 +261,7 @@ function VisitForm() {
                 {visit.job.map((job, jobIndex) => (
                   <li key={jobIndex}>
                     <Typography variant="body2">
-                      <strong>Service:</strong> {job.job_id.serviceName}, <strong>Technician:</strong> {job.technician_id}
+                      <strong>Service:</strong> {job.job_id ? job.job_id.serviceName : job.service.serviceName}, <strong>Technician:</strong> {job.technician_id}
                     </Typography>
                   </li>
                 ))}
