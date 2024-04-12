@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Grid, InputLabel, MenuItem, Select, Snackbar, Alert } from '@mui/material';
+import { Grid, InputLabel, MenuItem, Select, Snackbar, Alert, Button } from '@mui/material';
 import axios from 'axios';
 
 function VisitForm() {
@@ -11,8 +11,8 @@ function VisitForm() {
   const [customerCar, setCustomerCar] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState('');
   const [selectedCar, setSelectedCar] = useState('');
-  const [selectedService, setSelectedService] = useState('');
-  const [selectedTechnician, setSelectedTechnician] = useState('');
+  const [selectedServices, setSelectedServices] = useState(['']); // Initialize with one empty service field
+  const [selectedTechnicians, setSelectedTechnicians] = useState(['']); // Initialize with one empty technician field
   const [services, setServices] = useState([]);
   const [technicians, setTechnicians] = useState([]);
 
@@ -86,13 +86,22 @@ function VisitForm() {
     setSelectedCar(event.target.value);
   };
 
-  const handleServiceChange = (event) => {
-    setSelectedService(event.target.value);
-    setSelectedTechnician('');
+  const handleServiceChange = (event, index) => {
+    const newSelectedServices = [...selectedServices];
+    newSelectedServices[index] = event.target.value;
+    setSelectedServices(newSelectedServices);
+    setSelectedTechnicians([...selectedTechnicians, '']); // Add a corresponding empty technician field
   };
 
-  const handleTechnicianChange = (event) => {
-    setSelectedTechnician(event.target.value);
+  const handleTechnicianChange = (event, index) => {
+    const newSelectedTechnicians = [...selectedTechnicians];
+    newSelectedTechnicians[index] = event.target.value;
+    setSelectedTechnicians(newSelectedTechnicians);
+  };
+
+  const addServiceField = () => {
+    setSelectedServices([...selectedServices, '']);
+    setSelectedTechnicians([...selectedTechnicians, '']);
   };
 
   const handleSubmit = () => {
@@ -132,39 +141,47 @@ function VisitForm() {
             ))}
           </Select>
         </Grid>
-        <Grid item xs={6}>
-          <InputLabel id='serviceLabel'>Services</InputLabel>
-          <Select
-            fullWidth
-            labelId='serviceLabel'
-            value={selectedService}
-            onChange={handleServiceChange}
-          >
-            {services.map((service) => (
-              <MenuItem key={service._id} value={service}>
-                {service.serviceName}
-              </MenuItem>
-            ))}
-          </Select>
-        </Grid>
-        <Grid item xs={6}>
-          <InputLabel id='technicianLabel'>Technician</InputLabel>
-          <Select
-            fullWidth
-            labelId='technicianLabel'
-            value={selectedTechnician}
-            onChange={handleTechnicianChange}
-            disabled={!selectedService}
-          >
-            {selectedService &&
-              technicians
-                .filter((technician) => selectedService && selectedService.technicians && selectedService.technicians.includes(technician._id))
-                .map((technician) => (
-                  <MenuItem key={technician._id} value={technician._id}>
-                    {technician.firstname} {technician.lastname}
+        {selectedServices.map((service, index) => (
+          <React.Fragment key={index}>
+            <Grid item xs={6}>
+              <InputLabel id={`serviceLabel-${index}`}>Service</InputLabel>
+              <Select
+                fullWidth
+                labelId={`serviceLabel-${index}`}
+                value={service}
+                onChange={(event) => handleServiceChange(event, index)}
+              >
+                {services.map((service) => (
+                  <MenuItem key={service._id} value={service}>
+                    {service.serviceName}
                   </MenuItem>
                 ))}
-          </Select>
+              </Select>
+            </Grid>
+            <Grid item xs={6}>
+              <InputLabel id={`technicianLabel-${index}`}>Technician</InputLabel>
+              <Select
+                fullWidth
+                labelId={`technicianLabel-${index}`}
+                value={selectedTechnicians[index]}
+                onChange={(event) => handleTechnicianChange(event, index)}
+                disabled={!service}
+              >
+                {technicians
+                  .filter((technician) => service && service.technicians && service.technicians.includes(technician._id))
+                  .map((technician) => (
+                    <MenuItem key={technician._id} value={technician._id}>
+                      {technician.firstname} {technician.lastname}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </Grid>
+          </React.Fragment>
+        ))}
+        <Grid item xs={12}>
+          <Button variant="contained" color="primary" onClick={addServiceField}>
+            Add Service
+          </Button>
         </Grid>
         <Grid item xs={6}>
           <InputLabel id='dateLabel'>Date of Service</InputLabel>
