@@ -8,6 +8,7 @@ function CustomerForm() {
     lname: '',
     address: '',
     phoneNumber: '',
+    cars: ['6601ab7ac2bedc03b01741fe', '66141ad443ca74d07f9df799']
   });
   const [alertMessage, setAlertMessage] = useState('');
   const [errorFields, setErrorFields] = useState([]);
@@ -54,6 +55,7 @@ function CustomerForm() {
           lname: '',
           address: '',
           phoneNumber: '',
+          cars: ['6616a703fc8f2db0509a14eb']
         });
         setCustomers([...customers, response.data]); 
         setUsedPhoneNumbers([...usedPhoneNumbers, response.data.phoneNumber]); 

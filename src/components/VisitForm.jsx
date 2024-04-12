@@ -3,13 +3,23 @@ import { Paper, Box, Button, Chip, Grid, InputLabel, MenuItem, OutlinedInput, Se
 
 function VisitForm() {
   // const [integrationData, setIntData] = useState([]);
-  const [visits, setVisits] = useState([]);
+  const [services, setServices] = useState([]);
   const [serviceName, setServiceName] = useState("");
   const [serviceCost, setServiceCost] = useState("");
   const [selectedTechnicians, setSelectedTechs] = useState([]);
   const [technicians, setTechs] = useState([]);
   const [selectedServiceID, setSelectedService] = useState("");
   const [selectedTechNames, setSelectedTechNames] = useState([]);
+
+  const [visits, setVisits] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [cars, setCars] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const [jobSlots, setJobSlots] = useState(0);
+  
+  const [selectedCar, setSelectedCar] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState('');
+  const [visitDate, setDate] = useState();
 
   // Alert State Variables
   const [showAlert, setShowAlert] = useState(false);
@@ -55,6 +65,19 @@ function VisitForm() {
         setAlertMessage(selectedServiceID === 'Add New Service' ? 'Error Adding New Service' : 'Error Editing Service ' + serviceName);
       })
   }
+
+  useEffect(() => {
+    fetch('http://localhost:5050/customers/', {
+      method: 'GET'
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setCustomers(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+  })
 
   useEffect(() => {
     var names = []
@@ -199,104 +222,61 @@ function VisitForm() {
   return (
     <div>
       <Grid container spacing={3} style={{ width: '50vw', height: '75vh', backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '5px', marginTop: '20px'}}>
-        <Grid item xs={12}>
-          <InputLabel id='serviceSelectBox'>Service Selected</InputLabel>
+        {/* Customer */}
+        <Grid item xs={6}>
+          <InputLabel id='customerLabel'>Customer</InputLabel>
           <Select
-            labelId='serviceSelectBox'
-            id='serviceSelect'
-            value={selectedServiceID}
-            onChange={(event) => {
-              setSelectedService(event.target.value);
-              console.log(event.target.key);
-            }}
             fullWidth
-            MenuProps={MenuProps}
+
           >
-            {['', 'Add New Service', ...services].map((service) => (
-              <MenuItem key={service['_id'] ? service['_id'] : service} value={service['_id'] ? service['_id'] : service}>
-                {service['_id'] ? service['serviceName'] : service}
+            {customers.map((customer) => (
+              <MenuItem key={customer['_id']} value={customer['_id']}>
+                {customer['fname'] + ' ' + customer['lname']}
               </MenuItem>
-            ))}
+              ))}
           </Select>
         </Grid>
+        {/* Car */}
         <Grid item xs={6}>
-          <TextField
-            fullWidth
-            variant='outlined'
-            label='Service Name'
-            value={serviceName}
-            onChange={(event) => {
-              setServiceName(event.target.value)
-            }}
-          />
+          <InputLabel id='carLabel'>Car</InputLabel>
+
         </Grid>
 
-        <Grid item xs={6}>
-          <TextField
-            fullWidth
-            variant='outlined'
-            label='Service Cost'
-            value={serviceCost}
-            onChange={(event) => {
-              setServiceCost(event.target.value)
-            }}
-          />
-        </Grid>
-
-        <Grid item xs={12}>
-          <InputLabel id='techSelectBox'>Qualified Techs</InputLabel>
-          <Select
-            labelId='techSelectBox'
-            id='techSelect'
-            multiple
-            value={selectedTechnicians}
-            onChange={(event) => {
-              setSelectedTechs(event.target.value);
-              console.log(event.target.value);
-            }}
-            fullWidth
-            MenuProps={MenuProps}
-            input={<OutlinedInput id='select-multiple-chip' label='chip' />}
-            renderValue={(selected) => (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selectedTechNames.map((name) => (
-                  <Chip key={name} label={name} />
-                ))}
-              </Box>
-            )}
-          >
-            {technicians.map((tech) => (
-              <MenuItem key={tech['_id']} value={tech['_id']}>
-                {tech.firstname + " " + tech.lastname}
-              </MenuItem>
-            ))}
-          </Select>
-        </Grid>
+        {/* Date */}
 
         <Grid item xs={6}>
-          <Button
-            fullWidth
-            variant='contained'
-            onClick={() => {
-              postService();
-            }}
-          >
-            {selectedServiceID === '' || selectedServiceID === 'Add New Service' ? 'Add Service' : 'Save Changes'}
-          </Button>
+          <InputLabel id='dateLabel'>Date of Service</InputLabel>
+
         </Grid>
 
-        <Grid item xs={6}>
-          <Button
-            fullWidth
-            variant='contained'
-            disabled={selectedServiceID === '' || selectedServiceID === 'Add New Service'}
-            onClick={() => {
-              deleteService();
-            }}
-          >
+        {/* Rows for Jobs */}
+
+        {/* Service Select */}
+        <Grid item xs={4}>
+          <InputLabel id='serviceLabel'>Service</InputLabel>
+
+        </Grid>
+
+        {/* Tech Select */}
+        <Grid item xs={4}>
+          <InputLabel id='techLabel'>Technician</InputLabel>
+
+        </Grid>
+
+        {/* Delete Button */}
+        <Grid item xs={4}>
+          <Button>
             Delete Service
           </Button>
         </Grid>
+
+        {/** Add Additional Service Button */}
+        <Grid item xs={4}>
+          <Button>
+            Add Service
+          </Button>
+        </Grid>
+
         <Grid item xs={12}>
           <TableContainer component={Paper} style={{maxHeight: '250px'}} sx={{overflowX: 'hidden', overflowY:'scroll'}} fullWidth>
             <Table fullWidth stickyHeader>
