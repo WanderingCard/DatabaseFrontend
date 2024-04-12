@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Grid, Typography, Alert, MenuItem } from '@mui/material';
+import { TextField, Button, Grid, Typography, Alert, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, Paper } from '@mui/material';
 import axios from 'axios';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 function NewCar() {
   const [carData, setCarData] = useState({
@@ -12,6 +13,8 @@ function NewCar() {
   const [cars, setCars] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState('');
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
+  const [carToDelete, setCarToDelete] = useState(null);
 
   useEffect(() => {
     fetchCars();
@@ -75,7 +78,7 @@ function NewCar() {
         axios.get(`http://localhost:5050/customers/${selectedCustomer}`)
           .then(customerResponse => {
             const existingCustomerData = customerResponse.data;
-            const updatedCars = [...(existingCustomerData.cars || []), response.data._id]; 
+            const updatedCars = [...(existingCustomerData.cars || []), response.data.model]; 
             axios.patch(`http://localhost:5050/customers/${selectedCustomer}`, {
               ...existingCustomerData, 
               cars: updatedCars
@@ -98,10 +101,34 @@ function NewCar() {
         setAlertMessage('Error adding car: ' + error.message);
       });
   };
-  
+
+  const handleDeleteConfirmationOpen = (car) => {
+    setCarToDelete(car);
+    setDeleteConfirmationOpen(true);
+  };
+
+  const handleDeleteConfirmationClose = () => {
+    setDeleteConfirmationOpen(false);
+  };
+
+  const handleDeleteCar = () => {
+    if (carToDelete) {
+      axios.delete(`http://localhost:5050/cars/${carToDelete._id}`)
+        .then(() => {
+          setAlertMessage('Car deleted successfully');
+          fetchCars();
+          setDeleteConfirmationOpen(false);
+        })
+        .catch(error => {
+          console.error('Error deleting car:', error);
+          setAlertMessage('Error deleting car: ' + error.message);
+          setDeleteConfirmationOpen(false);
+        });
+    }
+  };
 
   return (
-    <div style={{ backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '5px', marginTop: '20px' }}>
+    <Paper style={{ backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '5px', marginTop: '20px' }}>
       <Typography variant="h5" component="h2" gutterBottom>
         New Car Form
       </Typography>
@@ -157,14 +184,37 @@ function NewCar() {
       <Typography variant="h6" component="h3" gutterBottom style={{ marginTop: '20px' }}>
         Cars
       </Typography>
-      <ul>
+      <Grid container spacing={2}>
         {cars.map(car => (
-          <li key={car.id}>
-            {car.model} - {car.licensePlate} (Customer: {car.customerId})
-          </li>
+          <Grid item xs={12} sm={6} key={car._id}>
+            <Paper style={{ backgroundColor: '#ffffff', padding: '10px', borderRadius: '5px', border: '1px solid #e0e0e0' }}>
+              <Typography variant="body1" gutterBottom>
+                {car.model} - {car.licensePlate} (Customer: {car.customerId})
+              </Typography>
+              <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={() => handleDeleteConfirmationOpen(car)}>
+                Delete
+              </Button>
+            </Paper>
+          </Grid>
         ))}
-      </ul>
-    </div>
+      </Grid>
+      <Dialog open={deleteConfirmationOpen} onClose={handleDeleteConfirmationClose}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1">
+            Are you sure you want to delete this car?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteConfirmationClose} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteCar} color="error">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Paper>
   );
 }
 
