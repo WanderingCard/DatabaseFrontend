@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Paper, Box, Button, Chip, Grid, InputLabel, MenuItem, OutlinedInput, Select, TextField, Snackbar, Alert, TableContainer, Table, TableHead, TableRow, TableBody, TableCell } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from 'dayjs';
 
 function VisitForm() {
   // const [integrationData, setIntData] = useState([]);
@@ -15,12 +19,16 @@ function VisitForm() {
   const [customerCar, setCustomerCar] = useState([]);
   const [visits, setVisits] = useState([]);
   const [customers, setCustomers] = useState([]);
-  const [jobs, setJobs] = useState([]);
-  const [jobSlots, setJobSlots] = useState(0);
-  
+  const [jobs, setJobs] = useState([{
+    service: '',
+    tech: '',
+    condition: '',
+  }]);
+  const [jobSlots, setJobSlots] = useState(1);
+
   const [selectedCar, setSelectedCar] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState('');
-  const [visitDate, setDate] = useState();
+  const [visitDate, setDate] = React.useState(dayjs('2024-04-11'));
 
   // Alert State Variables
   const [showAlert, setShowAlert] = useState(false);
@@ -52,7 +60,7 @@ function VisitForm() {
         setAlertMessage(selectedServiceID === 'Add New Service' ? 'Successfully Added New Service' : 'Changes Saved');
         setShowAlert(true);
         fetchAllData();
-        if(selectedServiceID === 'Add New Service') {
+        if (selectedServiceID === 'Add New Service') {
           setServiceName('');
           setServiceCost(0);
           setSelectedTechs([]);
@@ -78,7 +86,7 @@ function VisitForm() {
       .catch((err) => {
         console.log(err);
       })
-  })
+  }, [])
 
   useEffect(() => {
     var names = []
@@ -179,7 +187,7 @@ function VisitForm() {
 
   function getTechName(techID) {
     console.log(technicians[0])
-    for(var i = 0; i < technicians.length; i++) {
+    for (var i = 0; i < technicians.length; i++) {
       if (technicians[i]['_id'] === techID)
         return technicians[i]['firstname'] + ' ' + technicians[i]['lastname'];
     }
@@ -217,49 +225,78 @@ function VisitForm() {
     techIds.map((techId) => {
       technicianNames += getTechName(techId) + ", ";
     })
-    return technicianNames.substring(0,technicianNames.length-2);
+    return technicianNames.substring(0, technicianNames.length - 2);
   }
 
   useEffect(() => {
     fetch('http://localhost:5050/cars/', {
       method: 'GET'
     })
-    .then((response) => response.json())
-    .then((data) => {
-      setCars(data);
-    })
-  })
+      .then((response) => response.json())
+      .then((data) => {
+        setCars(data);
+      })
+  }, [])
 
   useEffect(() => {
-    if(selectedCustomer !== '') {
+    if (selectedCustomer !== '') {
       fetch('http://localhost:5050/customers/' + selectedCustomer, {
         method: 'GET'
       })
-      .then((response) => response.json())
-      .then((data) => {
-        var customerCarIds = data.cars;
-        var customerCards = [];
-        for (var i = 0; i < customerCarIds.length; i++) {
-          var found = false;
-          for (var a = 0; a < cars.length && !found; a++) {
-            if(cars[a]['_id'] === customerCarIds[i]) {
-              customerCards.push(cars[a]);
-              found = true;
+        .then((response) => response.json())
+        .then((data) => {
+          var customerCarIds = data.cars ? data.cars : [];
+          var customerCards = [];
+          for (var i = 0; i < customerCarIds.length; i++) {
+            var found = false;
+            for (var a = 0; a < cars.length && !found; a++) {
+              if (cars[a]['_id'] === customerCarIds[i]) {
+                customerCards.push(cars[a]);
+                found = true;
+              }
             }
           }
-        }
-        setCustomerCar(customerCards);
-        console.log(data.cars);
-      })
-      .catch((err) => {
-        console.log(err.message);
-      })
+          setCustomerCar(customerCards);
+          console.log(data.cars);
+        })
+        .catch((err) => {
+          console.log(err.message);
+        })
     }
   }, [selectedCustomer])
 
+  function getQualifiedTechs(service) {
+    if (service === '') {
+      return [];
+    }
+    console.log(service);
+    fetch('http://localhost:5050/services/' + service, {
+      method: 'GET'
+    })
+    .then((response) => response.json())
+    .then((json) => {
+      var qualifiedIds = json.technicians;
+      var qualifiedTechs = []
+      for (var i = 0; i < qualifiedIds.length; i++) {
+        var foundData = false;
+        for (var a = 0; a < technicians.length && !foundData; a++) {
+          if (qualifiedIds[i] === technicians[a]['_id']) {
+            qualifiedIds.push(technicians[a]);
+            foundData = true;
+          }
+        }
+      }
+      console.log(qualifiedTechs);
+      return qualifiedTechs;
+    })
+    .catch((error) => {
+      console.error(error);
+    })
+  }
+
   return (
     <div>
-      <Grid container spacing={3} style={{ width: '50vw', height: '75vh', backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '5px', marginTop: '20px'}}>
+      <Grid container spacing={3} style={{ width: '50vw', maxHeight: '75vh', backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '5px', marginTop: '20px' }}>
         {/* Customer */}
         <Grid item xs={6}>
           <InputLabel id='customerLabel'>Customer</InputLabel>
@@ -275,7 +312,7 @@ function VisitForm() {
               <MenuItem key={customer['_id']} value={customer['_id']}>
                 {customer['fname'] + ' ' + customer['lname']}
               </MenuItem>
-              ))}
+            ))}
           </Select>
         </Grid>
         {/* Car */}
@@ -288,34 +325,86 @@ function VisitForm() {
             onChange={(event) => {
               setSelectedCar(event.target.value);
             }}
+            disabled={customerCar.length === 0}
           >
             {customerCar.map((car) => (
               <MenuItem key={car['_id']} value={car['_id']}>
                 {car['model'] + ' - ' + car['licensePlate']}
               </MenuItem>
-              ))}
+            ))}
           </Select>
         </Grid>
 
         {/* Date */}
 
         <Grid item xs={6}>
-          <InputLabel id='dateLabel'>Date of Service</InputLabel>
-
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label="Date of Service"
+              value={visitDate}
+              onChange={(newValue) => setDate(newValue)}
+              fullWidth
+            />
+          </LocalizationProvider>
         </Grid>
+
+        <Grid item xs={6} />
 
         {/* Rows for Jobs */}
 
         {/* Service Select */}
         <Grid item xs={4}>
           <InputLabel id='serviceLabel'>Service</InputLabel>
-
+          <Select
+            labelId='serviceLabel'
+            value={jobs[0]['service']}
+            onChange={(event) => {
+              var editedJobs = jobs;
+              var editedJob = {...jobs[0], service: event.target.value}
+              console.log(editedJob);
+              editedJobs[0] = editedJob;
+              console.log(editedJobs);
+              console.log(editedJobs[0]);
+              setJobs(editedJobs); 
+              console.log(event.target.value)
+            }}
+            fullWidth
+          >
+            {services.map((service) => (
+              <MenuItem key={service['_id']} value ={service['_id']}>
+                {service.serviceName}
+              </MenuItem>
+            ))}
+          </Select>
         </Grid>
 
         {/* Tech Select */}
         <Grid item xs={4}>
           <InputLabel id='techLabel'>Technician</InputLabel>
+          <Select
+            labelId='techLabel'
+            value={jobs[0]['tech']}
+            onChange={(event) => {
+              var editedJobs = jobs;
+              var editedJob = {...jobs[0], tech: event.target.value}
+              editedJobs[0] = editedJob;
+              setJobs(editedJobs); 
+            }}
+            fullWidth
+            // disabled = {jobs[0]['service'] === ''}
+          >
+            {/* {getQualifiedTechs(jobs[0]['service']).map((tech)=> (
+                <MenuItem key={tech['_id']} value={tech['_id']}>
+                  {tech.firstname + ' ' + tech.lastname}
+                </MenuItem>
+              ))} */}
 
+            {/* {services.map((service) => (
+              <MenuItem key={service['_id']} value ={service['_id']}>
+                {service.serviceName}
+              </MenuItem>
+            ))} */}
+          </Select>
         </Grid>
 
         {/* Delete Button */}
