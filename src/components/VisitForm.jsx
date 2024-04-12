@@ -152,6 +152,25 @@ function VisitForm() {
     }
   };
 
+  //uses the techID to find the assoicated tech name to display with listed visits
+  function techName(techID)
+  {
+    for(var i = 0; i<technicians.length; i++)
+    {
+        if(technicians[i]._id == techID)
+          return technicians[i].firstname + " " + technicians[i].lastname;
+    }
+  }
+  //uses the custID to find the assoicated customer name to display with listed visits
+  function custName(CustID)
+  {
+    for(var i = 0; i<customers.length; i++)
+    {
+        if(customers[i]._id == CustID)
+          return customers[i].fname + " " + customers[i].lname;
+    }
+  }
+
   return (
     <div>
       <Paper elevation={3} style={{ padding: '20px', marginBottom: '20px' }}>
@@ -255,13 +274,13 @@ function VisitForm() {
           {visits.map((visit, index) => (
             <li key={index}>
               <Typography variant="subtitle1" style={{ marginBottom: '10px' }}>
-                <strong>Customer:</strong> {visit.customer}, <strong>Date:</strong> {visit.date}
+                <strong>Customer:</strong> {custName(visit.customer)}, <strong>Date:</strong> {visit.date}
               </Typography>
               <ul>
                 {visit.job.map((job, jobIndex) => (
                   <li key={jobIndex}>
                     <Typography variant="body2">
-                      <strong>Service:</strong> {job.job_id ? job.job_id.serviceName : job.service.serviceName}, <strong>Technician:</strong> {job.technician_id}
+                      <strong>Service:</strong> {job.job_id ? job.job_id.serviceName : job.service.serviceName}, <strong>Technician:</strong> {techName(job.technician_id)}
                     </Typography>
                   </li>
                 ))}
