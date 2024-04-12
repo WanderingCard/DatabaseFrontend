@@ -77,6 +77,7 @@ function NewCar() {
             const existingCustomerData = customerResponse.data;
             const updatedCars = [...(existingCustomerData.cars || []), response.data._id]; 
             axios.patch(`http://localhost:5050/customers/${selectedCustomer}`, {
+              ...existingCustomerData, 
               cars: updatedCars
             })
             .then(() => {
@@ -97,6 +98,7 @@ function NewCar() {
         setAlertMessage('Error adding car: ' + error.message);
       });
   };
+  
 
   return (
     <div style={{ backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '5px', marginTop: '20px' }}>
