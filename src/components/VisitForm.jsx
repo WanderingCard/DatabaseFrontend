@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Grid, InputLabel, MenuItem, Select, Button, Snackbar, Alert, TextField } from '@mui/material';
+import { Grid, InputLabel, MenuItem, Select, Snackbar, Alert } from '@mui/material';
 import axios from 'axios';
 
 function VisitForm() {
@@ -45,8 +45,41 @@ function VisitForm() {
     setShowAlert(false);
   };
 
+  useEffect(() => {
+    fetch('http://localhost:5050/cars/', {
+      method: 'GET'
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      setCustomerCar(data);
+    })
+    .catch((error) => {
+      console.error('Error fetching cars:', error);
+    });
+  }, []);
+
+  useEffect(() => {
+    if(selectedCustomer !== '') {
+      fetch(`http://localhost:5050/customers/${selectedCustomer}`, {
+        method: 'GET'
+      })
+      .then((response) => response.json())
+      .then((data) => {
+        const customerCarIds = data.cars;
+        const customerCars = customerCarIds.map((carId) => {
+          return customerCar.find((car) => car._id === carId);
+        });
+        setCustomerCar(customerCars);
+      })
+      .catch((error) => {
+        console.error('Error fetching customer cars:', error);
+      });
+    }
+  }, [selectedCustomer, customerCar]);
+
   const handleCustomerChange = (event) => {
     setSelectedCustomer(event.target.value);
+    setSelectedCar('');
   };
 
   const handleCarChange = (event) => {
