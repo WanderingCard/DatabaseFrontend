@@ -18,8 +18,12 @@ function NewCar() {
 
   useEffect(() => {
     fetchCars();
-    fetchCustomers();
+    // fetchCustomers();
   }, []);
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [cars])
 
   const fetchCars = () => {
     axios.get('http://localhost:5050/cars')
@@ -76,18 +80,19 @@ function NewCar() {
         // setSelectedCustomer('');
         console.log(response);
         updateCustomerCars(selectedCustomer, response.data.insertedId);
-        fetchCars(); 
+        fetchCars();
         setSelectedCustomer('');
         setCarData({
           model: '',
-          licensePlate: '',})
+          licensePlate: '',
+        })
       })
       .catch(error => {
         console.error('Error adding car:', error);
         setAlertMessage('Error adding car: ' + error.message);
       });
   };
-  
+
   function updateCustomerCars(cust, carId) {
     console.log(cust);
     console.log(carId);
@@ -138,6 +143,23 @@ function NewCar() {
         });
     }
   };
+
+  function getCarOwner(carId) {
+    console.log(customers);
+    for (var cusIndex = 0; cusIndex < customers.length; cusIndex++) {
+      var customerCars = customers[cusIndex].cars;
+      console.log(customerCars);
+      if (customerCars !== undefined) {
+        for (var carIndex = 0; carIndex < customerCars.length; carIndex++) {
+          console.log(customerCars[carIndex]._id);
+          if (customerCars[carIndex] === carId) {
+            return customers[cusIndex].fname + ' ' + customers[cusIndex].lname;
+          }
+        }
+      }
+    }
+    return 'N/A';
+  }
 
   return (
     <Paper style={{ backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '5px', marginTop: '20px' }}>
@@ -201,7 +223,7 @@ function NewCar() {
           <Grid item xs={12} sm={6} key={car._id}>
             <Paper style={{ backgroundColor: '#ffffff', padding: '10px', borderRadius: '5px', border: '1px solid #e0e0e0' }}>
               <Typography variant="body1" gutterBottom>
-                {car.model} - {car.licensePlate} (Customer: {car.customerId})
+                {car.model} - {car.licensePlate} (Customer: {getCarOwner(car._id)})
               </Typography>
               <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={() => handleDeleteConfirmationOpen(car)}>
                 Delete
