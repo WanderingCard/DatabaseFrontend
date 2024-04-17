@@ -264,7 +264,7 @@ function VisitForm() {
           <Grid item xs={6}>
             <InputLabel id='dateLabel'>Date of Service</InputLabel>
             <input
-              type='date'
+              type='datetime-local'
               value={selectedDate}
               onChange={handleDateChange}
               style={{ width: '100%' }}
