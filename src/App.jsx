@@ -7,7 +7,8 @@ import JobList from './components/JobList';
 import TechnicianForm from './components/TechnicianForm';
 import ServiceForm from './components/ServiceForm';
 import VisitForm from './components/VisitForm';
-import NoServiceTechs from './components/componentsPt.2/NoServiceTechs';
+import NoServiceTechs from './components/componentsPt.2/TechniciansWithoutJobs';
+import TechniciansWithoutJobs from './components/componentsPt.2/TechniciansWithoutJobs';
 
 function App() {
   const [activeSection, setActiveSection] = useState('customers');
@@ -59,8 +60,8 @@ function App() {
         case 'noServiceTechs':
         return(
           <div>
-            <h2>noServiceTechs</h2>
-            <NoServiceTechs />
+            <h2>TechniciansWithoutJobs</h2>
+            <TechniciansWithoutJobs />
           </div>
         );
       default:
