@@ -7,6 +7,7 @@ import JobList from './components/JobList';
 import TechnicianForm from './components/TechnicianForm';
 import ServiceForm from './components/ServiceForm';
 import VisitForm from './components/VisitForm';
+import ServiceTable from './components/Tables/ServiceTable';
 
 function App() {
   const [activeSection, setActiveSection] = useState('customers');
@@ -55,6 +56,10 @@ function App() {
             <VisitForm />
           </div>
         );
+      case 'test':
+        return (
+          <ServiceTable />
+        )
       default:
         return null;
     }
@@ -72,6 +77,7 @@ function App() {
         <button onClick={() => setActiveSection('service')}> Services </button>
         <button onClick={() => setActiveSection('technician')}>Technician</button>
         <button onClick={() => setActiveSection('visit')}>Visit</button>
+        <button onClick={() => setActiveSection('test')}>Test</button>
       </div>
       {renderSection()}
     </Container>
