@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Typography, List, ListItem, ListItemText, Alert } from '@mui/material';
 
-function JobList() {
+function NoServiceTechs() {
   const [techniciansWithNoJobs, setTechniciansWithNoJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -10,13 +10,12 @@ function JobList() {
     axios.get('http://localhost:5050/technicians')
       .then(response => {
         const formattedTechnicians = response.data.map(tech => ({
-          id: tech._id, // Fix the key name here
+          id: tech._id,
           name: `${tech.firstname} ${tech.lastname}`
         }));
-        // Fetch jobs here and then filter technicians without jobs
         axios.get('http://localhost:5050/visits')
           .then(visitsResponse => {
-            const techniciansWithJobs = visitsResponse.data.map(visit => visit.technician_id);
+            const techniciansWithJobs = visitsResponse.data.flatMap(visit => visit.job.map(job => job.technician_id));
             const techniciansWithoutJobs = formattedTechnicians.filter(tech => !techniciansWithJobs.includes(tech.id));
             setTechniciansWithNoJobs(techniciansWithoutJobs);
             setLoading(false);
@@ -56,4 +55,4 @@ function JobList() {
   );
 }
 
-export default JobList;
+export default NoServiceTechs;
