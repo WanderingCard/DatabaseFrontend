@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Typography, List, ListItem, ListItemText, CircularProgress, Alert } from '@mui/material';
+import { Typography, List, ListItem, ListItemText, CircularProgress } from '@mui/material';
 
 function TechniciansWithVisits() {
-  const [mergedData, setMergedData] = useState([]);
+  const [techniciansWithVisits, setTechniciansWithVisits] = useState([]);
+  const [techniciansWithoutVisits, setTechniciansWithoutVisits] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -11,17 +12,23 @@ function TechniciansWithVisits() {
       .then(techniciansResponse => {
         axios.get('http://localhost:5050/visit')
           .then(visitsResponse => {
-            const technicians = techniciansResponse.data;
             const visits = visitsResponse.data;
-            const mergedData = visits.map(visit => {
-              const technician = technicians.find(tech => tech._id === visit.technician_id);
-              return {
-                ...visit,
-                technician: technician ? technician : { firstname: 'Unknown', lastname: 'Technician' } // Handle case when technician is not found
-              };
+            const technicianIdsInVisits = new Set(visits.flatMap(visit => visit.job.map(job => job.technician_id)));
+
+            const technicians = techniciansResponse.data;
+            const techniciansWithVisits = [];
+            const techniciansWithoutVisits = [];
+
+            technicians.forEach(tech => {
+              if (technicianIdsInVisits.has(tech._id)) {
+                techniciansWithVisits.push(tech);
+              } else {
+                techniciansWithoutVisits.push(tech);
+              }
             });
 
-            setMergedData(mergedData);
+            setTechniciansWithVisits(techniciansWithVisits);
+            setTechniciansWithoutVisits(techniciansWithoutVisits);
             setLoading(false);
           })
           .catch(error => {
@@ -38,16 +45,26 @@ function TechniciansWithVisits() {
   return (
     <div>
       {loading && <CircularProgress />}
-      {!loading && mergedData.length === 0 && <Alert severity="info">No data available</Alert>}
-      {!loading && mergedData.length > 0 && (
+      {!loading && (
         <div>
           <Typography variant="h4" component="h2" gutterBottom>
             Technicians With Visits
           </Typography>
           <List>
-            {mergedData.map((data, index) => (
+            {techniciansWithVisits.map((technician, index) => (
               <ListItem key={index}>
-                <ListItemText primary={`${data.technician.firstname} ${data.technician.lastname}`} secondary={`Visited on: ${data.date}`} />
+                <ListItemText primary={`${technician.firstname} ${technician.lastname}`} />
+              </ListItem>
+            ))}
+          </List>
+
+          <Typography variant="h4" component="h2" gutterBottom>
+            Technicians Without Visits
+          </Typography>
+          <List>
+            {techniciansWithoutVisits.map((technician, index) => (
+              <ListItem key={index}>
+                <ListItemText primary={`${technician.firstname} ${technician.lastname}`} />
               </ListItem>
             ))}
           </List>
