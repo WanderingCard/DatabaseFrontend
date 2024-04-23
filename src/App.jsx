@@ -7,6 +7,7 @@ import JobList from './components/JobList';
 import TechnicianForm from './components/TechnicianForm';
 import ServiceForm from './components/ServiceForm';
 import VisitForm from './components/VisitForm';
+import NoServiceTechs from './components/componentsPt.2/NoServiceTechs';
 
 function App() {
   const [activeSection, setActiveSection] = useState('customers');
@@ -54,6 +55,13 @@ function App() {
             <h2>Visit</h2>
             <VisitForm />
           </div>
+        )
+        case 'noServiceTechs':
+        return(
+          <div>
+            <h2>noServiceTechs</h2>
+            <NoServiceTechs />
+          </div>
         );
       default:
         return null;
@@ -72,6 +80,7 @@ function App() {
         <button onClick={() => setActiveSection('service')}> Services </button>
         <button onClick={() => setActiveSection('technician')}>Technician</button>
         <button onClick={() => setActiveSection('visit')}>Visit</button>
+        <button onClick={() => setActiveSection('noServiceTechs')}>NoServiceTechs</button>
       </div>
       {renderSection()}
     </Container>
