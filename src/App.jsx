@@ -7,9 +7,10 @@ import JobList from './components/JobList';
 import TechnicianForm from './components/TechnicianForm';
 import ServiceForm from './components/ServiceForm';
 import VisitForm from './components/VisitForm';
-import ServiceTable from './components/Tables/ServiceTable';
 import TechniciansWithoutJobs from './components/componentsPt.2/TechniciansWithoutJobs';
 import TechTable from './components/Tables/TechTable';
+import JobTable from './components/Tables/JobTable';
+import ServiceTable from './components/Tables/ServiceTable';
 
 function App() {
   const [activeSection, setActiveSection] = useState('customers');
@@ -65,18 +66,15 @@ function App() {
             <TechniciansWithoutJobs />
           </div>
         );
-      case 'visitTable':
+      case 'jobTable':
         return (
-          <div>
-            <h2>Visits Tables</h2>
-            <ServiceTable />
-          </div>
+          <JobTable />
         );
       case 'serviceTable':
         return (
           <div>
             <h2>Service Table</h2>
-            Would contain data from Issues 13 and 14, When no Service is selected it should show the data for 14 and when a service is selected it should show the data for 13
+            <ServiceTable />
           </div>
         );
       case 'technicianTable':
@@ -103,9 +101,9 @@ function App() {
         <button onClick={() => setActiveSection('service')}> Services </button>
         <button onClick={() => setActiveSection('technician')}>Technician</button>
         <button onClick={() => setActiveSection('visit')}>Visit</button>
-        <button onClick={() => setActiveSection('noServiceTechs')}>NoServiceTechs</button>
-        <button onClick={() => setActiveSection('visitTable')}>Visits Table</button>
+        <button onClick={() => setActiveSection('jobTable')}>Jobs Table</button>
         <button onClick={() => setActiveSection('serviceTable')}>Service Table</button>
+        <button onClick={() => setActiveSection('noServiceTechs')}>NoServiceTechs</button>
         <button onClick={() => setActiveSection('technicianTable')}>Technician Table</button>
       </div>
       {renderSection()}
