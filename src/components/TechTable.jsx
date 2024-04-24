@@ -24,6 +24,7 @@ function TechTable() {
     const [visitsLoaded, setLoaded] = useState(false);
     const [technicians, setTechnicians] = useState([]);
     const [selectedTechnician, setSelectedTechnician] = useState([]);
+    const [techServices, setTechServices] = useState([]);
 
     useEffect(() => {
         getAllCustomers();
@@ -34,7 +35,6 @@ function TechTable() {
 
     useEffect(() => {
         filterJobs();
-        // setLoaded(true);
     }, [visits, cars, visits])
 
     useEffect(() => {
@@ -88,18 +88,17 @@ function TechTable() {
     }
 
     useEffect(() => {
-        console.log(customers)
-    }, [customers])
+        console.log(technicians)
+    }, [technicians])
 
     useEffect(() => {
-        if (selectedCustomer !== 'no value') {
-            fetch('http://localhost:5050/customers/' + selectedCustomer, {
+        if (selectedTechnician !== 'no value') {
+            fetch('http://localhost:5050/technicians/' + selectedTechnician, {
                 method: 'GET'
             })
                 .then((response) => response.json())
                 .then((json) => {
                     setCustomerCars(json.cars)
-                    // console.log(json.cars);
                 })
         } else {
             setCustomerCars([]);
@@ -107,13 +106,13 @@ function TechTable() {
     }, [selectedCustomer])
 
     useEffect(() => {
-        console.log(customerCars);
+        console.log(selectedTechnician);
         filterJobs();
-    }, [customerCars, filterStartTime, filterEndTime])
+    }, [selectedTechnician, filterStartTime, filterEndTime])
 
     function filterJobs() {
         var filter = [];
-        if (customerCars.length === 0 && filterStartTime === null && filterEndTime === null) {
+        if (filterStartTime === null && filterEndTime === null) {
             // setFilteredVisits(visits);
             filter = visits;
         } else {
@@ -220,7 +219,7 @@ function TechTable() {
                 >
                     {["", ...technicians].map((technicians) => (
                         <MenuItem key={technicians._id ? technicians._id : 'no_value'} value={technicians._id ? technicians._id : 'no value'}>
-                            {technicians._id ? technicians.fname + " " + technicians.lname : '-- Select Technician --'}
+                            {technicians._id ? technicians.firstname + " " + technicians.lastname : '-- Select Technician --'}
                         </MenuItem>
                     ))}
                 </Select>
@@ -253,7 +252,7 @@ function TechTable() {
             <Grid item xs={12}>
                 <Table component={Paper} sx={{ overflowX: 'scroll', overflowY: 'scroll'}} >
                     <TableHead>
-                        {selectedTechnician === 'no value' && <TableCell>Customer Name</TableCell>}
+                        <TableCell>Customer Name</TableCell>
                         <TableCell>License Plate</TableCell>
                         <TableCell>Model</TableCell>
                         <TableCell>Date and Time</TableCell>
@@ -269,7 +268,7 @@ function TechTable() {
                             return (
                                 <>
                                     <TableRow>
-                                        {selectedCustomer === 'no value' && <TableCell rowSpan={job.job.length}>{getCustomerName(job.customer)}</TableCell>}
+                                       <TableCell rowSpan={job.job.length}>{getCustomerName(job.customer)}</TableCell>
                                         <TableCell rowSpan={job.job.length}>
                                             {carData.licensePlate}
                                         </TableCell>
@@ -285,9 +284,9 @@ function TechTable() {
                                         <TableCell>
                                             {job.job[0].service.cost}
                                         </TableCell>
-                                        <TableCell>
+                                        {selectedTechnician === 'no value' &&  <TableCell>
                                             {getTechName(job.job[0].technician_id)}
-                                        </TableCell>
+                                        </TableCell>}
                                     </TableRow>
                                     {job.job.slice(1).map((service) => (
                                         <TableRow>
@@ -297,9 +296,9 @@ function TechTable() {
                                             <TableCell>
                                                 {service.service.cost}
                                             </TableCell>
-                                            <TableCell>
+                                            {selectedTechnician === 'no value' && <TableCell>
                                                 {getTechName(service.technician_id)}
-                                            </TableCell>
+                                            </TableCell>}
                                         </TableRow>
                                     ))}
                                 </>
