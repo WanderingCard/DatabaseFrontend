@@ -189,7 +189,7 @@ function TechTable() {
                     if (filteredVisits[i].job[j].technician_id === selectedTechnician) {
                         var serviceCost = parseFloat(filteredVisits[i].job[j].service.cost);
                         if(!isNaN(serviceCost)){
-                            salesTotal += filteredVisits[i].job[j].service.cost;
+                            salesTotal += serviceCost;
                         }
                     }
                 }
