@@ -3,8 +3,8 @@ import axios from 'axios';
 import { Grid, InputLabel, MenuItem, Paper, Select, Table, TableCell, TableHead, TableRow, Typography } from "@mui/material";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
-import DatePicker from '@mui/lab/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 
