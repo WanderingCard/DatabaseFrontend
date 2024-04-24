@@ -11,7 +11,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 
-function TechTable() {
+function ServiceStats() {
     const [customerCars, setCustomerCars] = useState([]);
     const [customerServices, setServices] = useState([]);
     const [visits, setVisits] = useState([]);
@@ -23,7 +23,6 @@ function TechTable() {
     const [filteredVisits, setFilteredVisits] = useState([]);
     const [visitsLoaded, setLoaded] = useState(false);
     const [technicians, setTechnicians] = useState([]);
-    const [selectedTechnician, setSelectedTechnician] = useState([]);
 
     useEffect(() => {
         getAllCustomers();
@@ -118,7 +117,7 @@ function TechTable() {
             filter = visits;
         } else {
             for (var i = 0; i < visits.length; i++) {
-                if(selectedTechnician === 'no value' || visits[i]['job'].some(job => job.technician_id === selectedTechnician)){
+                if (customerCars.length === 0 || customerCars.includes(visits[i]['car'])) {
                     if (dateInRange(visits[i]['date'], filterStartTime, filterEndTime) === true)
                         filter.push(visits[i]);
                 }
@@ -207,20 +206,20 @@ function TechTable() {
     return (
         <Grid container spacing={3} marginTop={'5px'}>
             <Grid item xs={4}>
-                <InputLabel id='TechnicianSelectBox'>Technician</InputLabel>
+                <InputLabel id='CustomerSelectBox'>Customer</InputLabel>
                 <Select
                     fullWidth
-                    labelId='TechnicianSelectBox'
+                    labelId='CustomerSelectBox'
                     id='ServiceSelect'
-                    value={selectedTechnician}
+                    value={selectedCustomer}
                     onChange={(event) => {
-                        setSelectedTechnician(event.target.value);
+                        setSelectedCustomer(event.target.value);
                         console.log(event.target.value);
                     }}
                 >
-                    {["", ...technicians].map((technicians) => (
-                        <MenuItem key={technicians._id ? technicians._id : 'no_value'} value={technicians._id ? technicians._id : 'no value'}>
-                            {technicians._id ? technicians.fname + " " + technicians.lname : '-- Select Technician --'}
+                    {["", ...customers].map((customer) => (
+                        <MenuItem key={customer._id ? customer._id : 'no_value'} value={customer._id ? customer._id : 'no value'}>
+                            {customer._id ? customer.fname + " " + customer.lname : '-- Select Customer --'}
                         </MenuItem>
                     ))}
                 </Select>
@@ -253,7 +252,7 @@ function TechTable() {
             <Grid item xs={12}>
                 <Table component={Paper} sx={{ overflowX: 'scroll', overflowY: 'scroll'}} >
                     <TableHead>
-                        {selectedTechnician === 'no value' && <TableCell>Customer Name</TableCell>}
+                        {selectedCustomer === 'no value' && <TableCell>Customer Name</TableCell>}
                         <TableCell>License Plate</TableCell>
                         <TableCell>Model</TableCell>
                         <TableCell>Date and Time</TableCell>
@@ -307,9 +306,26 @@ function TechTable() {
                         })
                     }
                 </Table>
+                {/* <Table component={Paper} sx={{ marginTop: '5px' }}>
+                    <TableHead>
+                        <TableCell>Car</TableCell>
+                        <TableCell>Date</TableCell>
+                        <TableCell>Service</TableCell>
+                        <TableCell>Technician</TableCell>
+                    </TableHead>
+                    <TableRow>
+                        <TableCell rowSpan={2}>Testing</TableCell>
+                        <TableCell>Testing Two</TableCell>
+                        <TableCell>Testing Three</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>Testing Two</TableCell>
+                        <TableCell>Testing Three</TableCell>
+                    </TableRow>
+                </Table> */}
             </Grid>
         </Grid >
     )
 }
 
-export default TechTable;
+export default ServiceStats;
