@@ -83,18 +83,15 @@ function TechTable() {
                 (selectedTechnician === '' || visit.job.some(job => job.technician_id === selectedTechnician)) &&
                 dateInRange(visit.date, filterStartTime, filterEndTime)
             );
+    
+            if (selectedTechnician !== '') {
+                filter = filter.map(visit => ({
+                    ...visit,
+                    job: visit.job.filter(job => job.technician_id === selectedTechnician)
+                })).filter(visit => visit.job.length > 0);
+            }
         }
         setFilteredVisits(filter);
-    }
-
-    function dateInRange(testDate, startDate, endDate) {
-        if (startDate === null && endDate === null)
-            return true;
-        if (startDate !== null && dayjs(testDate).isBefore(startDate))
-            return false;
-        if (endDate !== null && dayjs(testDate).isAfter(endDate))
-            return false;
-        return true;
     }
 
     function getCarData(carId) {
@@ -102,11 +99,13 @@ function TechTable() {
     }
 
     function getCustomerName(custId) {
-        return (customers.find(customer => customer._id === custId) || {}).fname + ' ' + (customers.find(customer => customer._id === custId) || {}).lname;
+        const customer = customers.find(customer => customer._id === custId);
+        return customer ? `${customer.fname} ${customer.lname}` : '';
     }
 
     function getTechName(techId) {
-        return (technicians.find(tech => tech._id === techId) || {}).firstname + ' ' + (technicians.find(tech => tech._id === techId) || {}).lastname;
+        const technician = technicians.find(tech => tech._id === techId);
+        return technician ? `${technician.firstname} ${technician.lastname}` : '';
     }
 
     function getTechSales() {
@@ -122,6 +121,15 @@ function TechTable() {
             });
         });
         return salesTotal;
+    }
+    function dateInRange(testDate, startDate, endDate) {
+        if (startDate === null && endDate === null)
+            return true;
+        if (startDate !== null && dayjs(testDate).isBefore(startDate))
+            return false;
+        if (endDate !== null && dayjs(testDate).isAfter(endDate))
+            return false;
+        return true;
     }
 
     return (
