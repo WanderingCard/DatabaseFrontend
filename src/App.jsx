@@ -7,6 +7,7 @@ import JobList from './components/JobList';
 import TechnicianForm from './components/TechnicianForm';
 import ServiceForm from './components/ServiceForm';
 import VisitForm from './components/VisitForm';
+import ServiceTable from './components/Tables/ServiceTable';
 import NoServiceTechs from './components/componentsPt.2/TechniciansWithoutJobs';
 import TechniciansWithoutJobs from './components/componentsPt.2/TechniciansWithoutJobs';
 
@@ -68,7 +69,7 @@ function App() {
         return (
           <div>
             <h2>Visits Tables</h2>
-            This would contain the stuff from the PR I just put up, Customer and Date filtering of jobs. 
+            <ServiceTable />
           </div>
         );
       case 'serviceTable':
