@@ -238,8 +238,10 @@ function ServiceTable() {
                         value={filterStartTime}
                         onChange={(newValue) => {
                             console.log(newValue);
-
                             setStartTime(newValue)
+                            if(filterEndTime !== null && newValue.isAfter(filterEndTime)) {
+                                setEndTime(newValue);
+                            }
                         }}
                     />
                 </Grid>
@@ -250,6 +252,9 @@ function ServiceTable() {
                         value={filterEndTime}
                         onChange={(newValue) => {
                             console.log(newValue);
+                            if(filterStartTime !== null && newValue.isBefore(filterStartTime)) {
+                                setStartTime(newValue);
+                            }
                             setEndTime(newValue)
                         }}
                     />
