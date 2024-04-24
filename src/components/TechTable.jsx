@@ -12,19 +12,15 @@ dayjs.extend(timezone);
 
 
 function TechTable() {
-    const [customerCars, setCustomerCars] = useState([]);
-    const [customerServices, setServices] = useState([]);
-    const [visits, setVisits] = useState([]);
     const [customers, setCustomers] = useState([]);
-    const [selectedCustomer, setSelectedCustomer] = useState('no value');
+    const [cars, setCars] = useState([]);
+    const [visits, setVisits] = useState([]);
+    const [technicians, setTechnicians] = useState([]);
     const [filterStartTime, setStartTime] = useState(null);
     const [filterEndTime, setEndTime] = useState(null);
-    const [cars, setCars] = useState([]);
     const [filteredVisits, setFilteredVisits] = useState([]);
     const [visitsLoaded, setLoaded] = useState(false);
-    const [technicians, setTechnicians] = useState([]);
-    const [selectedTechnician, setSelectedTechnician] = useState([]);
-    const [techServices, setTechServices] = useState([]);
+    const [selectedTechnician, setSelectedTechnician] = useState('no value');
 
     useEffect(() => {
         getAllCustomers();
@@ -88,22 +84,9 @@ function TechTable() {
     }
 
     useEffect(() => {
+        setSelectedTechnician('no value');
         console.log(technicians)
     }, [technicians])
-
-    useEffect(() => {
-        if (selectedTechnician !== 'no value') {
-            fetch('http://localhost:5050/technicians/' + selectedTechnician, {
-                method: 'GET'
-            })
-                .then((response) => response.json())
-                .then((json) => {
-                    setCustomerCars(json.cars)
-                })
-        } else {
-            setCustomerCars([]);
-        }
-    }, [selectedCustomer])
 
     useEffect(() => {
         console.log(selectedTechnician);
@@ -112,7 +95,7 @@ function TechTable() {
 
     function filterJobs() {
         var filter = [];
-        if (filterStartTime === null && filterEndTime === null) {
+        if (selectedTechnician === 'no value' && filterStartTime === null && filterEndTime === null) {
             // setFilteredVisits(visits);
             filter = visits;
         } else {
@@ -170,7 +153,6 @@ function TechTable() {
         var carVisits = {};
         for (var i = 0; i < array.length; i++) {
             if(array[i].car in carVisits) {
-                // var newArray = carVisits[array[i].car].push(array[i]);
                 var newArray = [...carVisits[array[i].car], array[i]];
                 carVisits = {...carVisits, [array[i].car]: newArray};
             } else {
@@ -188,10 +170,6 @@ function TechTable() {
             sortedArray = sortedArray.concat(carSort);
         }
         return sortedArray;
-    }
-
-    function sortByDate(array) {
-        
     }
 
     function getTechName(techId) {
@@ -258,7 +236,7 @@ function TechTable() {
                         <TableCell>Date and Time</TableCell>
                         <TableCell>Service Name</TableCell>
                         <TableCell>Service Cost</TableCell>
-                        <TableCell>Technician</TableCell>
+                        {selectedTechnician === 'no value' && <TableCell>Technician</TableCell>}
                     </TableHead>
                     {visitsLoaded === false ?
                         <Typography>Loading Visits</Typography> :
