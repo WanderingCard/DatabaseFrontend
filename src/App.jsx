@@ -56,7 +56,7 @@ function App() {
             <VisitForm />
           </div>
         );
-      case 'test':
+      case 'serviceSchedule':
         return (
           <ServiceTable />
         )
@@ -77,7 +77,7 @@ function App() {
         <button onClick={() => setActiveSection('service')}> Services </button>
         <button onClick={() => setActiveSection('technician')}>Technician</button>
         <button onClick={() => setActiveSection('visit')}>Visit</button>
-        <button onClick={() => setActiveSection('test')}>Test</button>
+        <button onClick={() => setActiveSection('serviceSchedule')}>Services List</button>
       </div>
       {renderSection()}
     </Container>

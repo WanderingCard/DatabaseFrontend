@@ -1,9 +1,14 @@
-import { Grid, InputLabel, MenuItem, Paper, Select, Table, TableCell, TableHead, TableRow } from "@mui/material";
+import { Grid, InputLabel, MenuItem, Paper, Select, Table, TableCell, TableHead, TableRow, Typography } from "@mui/material";
 import { useState, useEffect } from 'react';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 
 function ServiceTable() {
@@ -16,15 +21,28 @@ function ServiceTable() {
     const [filterEndTime, setEndTime] = useState(null);
     const [cars, setCars] = useState([]);
     const [filteredVisits, setFilteredVisits] = useState([]);
+    const [visitsLoaded, setLoaded] = useState(false);
+    const [technicians, setTechnicians] = useState([]);
 
     useEffect(() => {
         getAllCustomers();
         getAllCars();
         getAllVisits();
+        getAllTechs();
     }, [])
 
-    function getAllCustomers() {
-        fetch('http://localhost:5050/customers/', {
+    useEffect(() => {
+        filterJobs();
+        // setLoaded(true);
+    }, [visits, cars, visits])
+
+    useEffect(() => {
+        if (filteredVisits.length > 0)
+            setLoaded(true);
+    }, [filteredVisits])
+
+    async function getAllCustomers() {
+        await fetch('http://localhost:5050/customers/', {
             method: 'GET'
         })
             .then((response) => response.json())
@@ -35,8 +53,8 @@ function ServiceTable() {
             .catch((err) => console.error(err))
     }
 
-    function getAllCars() {
-        fetch('http://localhost:5050/cars/', {
+    async function getAllCars() {
+        await fetch('http://localhost:5050/cars/', {
             method: 'GET'
         })
             .then((response) => response.json())
@@ -47,8 +65,8 @@ function ServiceTable() {
             .catch((err) => console.error(err))
     }
 
-    function getAllVisits() {
-        fetch('http://localhost:5050/visit/', {
+    async function getAllVisits() {
+        await fetch('http://localhost:5050/visit/', {
             method: 'GET'
         })
             .then((response) => response.json())
@@ -59,12 +77,21 @@ function ServiceTable() {
             .catch((err) => console.error(err))
     }
 
+    async function getAllTechs() {
+        await fetch('http://localhost:5050/technicians/', {
+            method: 'GET'
+        })
+        .then((response) => response.json())
+        .then((json) => setTechnicians(json))
+        .catch((err) => console.error(err))
+    }
+
     useEffect(() => {
         console.log(customers)
     }, [customers])
 
     useEffect(() => {
-        if(selectedCustomer !== 'no value') {
+        if (selectedCustomer !== 'no value') {
             fetch('http://localhost:5050/customers/' + selectedCustomer, {
                 method: 'GET'
             })
@@ -79,6 +106,7 @@ function ServiceTable() {
     }, [selectedCustomer])
 
     useEffect(() => {
+        console.log(customerCars);
         filterJobs();
     }, [customerCars, filterStartTime, filterEndTime])
 
@@ -90,13 +118,13 @@ function ServiceTable() {
         } else {
             for (var i = 0; i < visits.length; i++) {
                 if (customerCars.length === 0 || customerCars.includes(visits[i]['car'])) {
-                    if(dateInRange(visits[i]['date'], filterStartTime, filterEndTime) === true)
+                    if (dateInRange(visits[i]['date'], filterStartTime, filterEndTime) === true)
                         filter.push(visits[i]);
                 }
             }
         }
         console.log(filter);
-        setFilteredVisits(visits);
+        setFilteredVisits(filter);
     }
 
     /**
@@ -107,13 +135,49 @@ function ServiceTable() {
      * @returns 
      */
     function dateInRange(testDate, startDate, endDate) {
-        if (startDate === null && endDate === null) 
+        if (startDate === null && endDate === null)
             return true;
         if (startDate !== null && dayjs(testDate).isBefore(startDate))
             return false;
         if (endDate !== null && dayjs(testDate).isAfter(endDate))
             return false;
         return true;
+    }
+
+    function getCarData(carId) {
+        // console.log(carId);
+        for (var i = 0; i < cars.length; i++) {
+            // console.log(cars[i]._id)
+            if (cars[i]._id === carId)
+                return cars[i];
+        }
+        return null;
+    }
+
+    function getCustomerName(custId) {
+        for (var i = 0; i < customers.length; i++) {
+            if (customers[i]._id === custId)
+                return customers[i].fname + ' ' + customers[i].lname;
+        }
+        return null;
+    }
+
+    /**
+     * 
+     * @param {Array[object]} array - an array of visits, must contain the car attribute
+     */
+    function groupByCar(array) {
+        const sorted = array.sort((a, b) => a.car.localeCompare(b.car));
+        return sorted;
+    }
+
+    function getTechName(techId) {
+        for(var i = 0; i < technicians.length; i++) {
+            if (technicians[i]._id === techId) {
+                return technicians[i].firstname + ' ' + technicians[i].lastname;
+            }
+        }
+        return "N/A";
     }
 
     return (
@@ -141,10 +205,11 @@ function ServiceTable() {
                 <Grid item xs={4}>
                     <InputLabel id='start-date-picker'>Start Date</InputLabel>
                     <DatePicker
+                        fullWidth
                         value={filterStartTime}
                         onChange={(newValue) => {
                             console.log(newValue);
-                            
+
                             setStartTime(newValue)
                         }}
                     />
@@ -152,6 +217,7 @@ function ServiceTable() {
                 <Grid item xs={4}>
                     <InputLabel id='end-date-picker'>End Date</InputLabel>
                     <DatePicker
+                        fullWidth
                         value={filterEndTime}
                         onChange={(newValue) => {
                             console.log(newValue);
@@ -161,7 +227,63 @@ function ServiceTable() {
                 </Grid>
             </LocalizationProvider>
             <Grid item xs={12}>
-                <Table component={Paper} sx={{ marginTop: '5px' }}>
+                <Table component={Paper} sx={{ overflowX: 'scroll', overflowY: 'scroll'}} >
+                    <TableHead>
+                        {selectedCustomer === 'no value' && <TableCell>Customer Name</TableCell>}
+                        <TableCell>License Plate</TableCell>
+                        <TableCell>Model</TableCell>
+                        <TableCell>Date and Time</TableCell>
+                        <TableCell>Service Name</TableCell>
+                        <TableCell>Service Cost</TableCell>
+                        <TableCell>Technician</TableCell>
+                    </TableHead>
+                    {visitsLoaded === false ?
+                        <Typography>Loading Visits</Typography> :
+                        groupByCar(filteredVisits).map((job) => {
+                            var carData = getCarData(job.car);
+                            console.log(carData);
+                            return (
+                                <>
+                                    <TableRow>
+                                        {selectedCustomer === 'no value' && <TableCell rowSpan={job.job.length}>{getCustomerName(job.customer)}</TableCell>}
+                                        <TableCell rowSpan={job.job.length}>
+                                            {carData.licensePlate}
+                                        </TableCell>
+                                        <TableCell rowSpan={job.job.length}>
+                                            {carData.model}
+                                        </TableCell>
+                                        <TableCell rowSpan={job.job.length}>
+                                            {dayjs.tz(job.date, 'America/New_York').format()}
+                                        </TableCell>
+                                        <TableCell>
+                                            {job.job[0].service.serviceName}
+                                        </TableCell>
+                                        <TableCell>
+                                            {job.job[0].service.cost}
+                                        </TableCell>
+                                        <TableCell>
+                                            {getTechName(job.job[0].technician_id)}
+                                        </TableCell>
+                                    </TableRow>
+                                    {job.job.slice(1).map((service) => (
+                                        <TableRow>
+                                            <TableCell>
+                                                {service.service.serviceName}
+                                            </TableCell>
+                                            <TableCell>
+                                                {service.service.cost}
+                                            </TableCell>
+                                            <TableCell>
+                                                {getTechName(service.technician_id)}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </>
+                            )
+                        })
+                    }
+                </Table>
+                {/* <Table component={Paper} sx={{ marginTop: '5px' }}>
                     <TableHead>
                         <TableCell>Car</TableCell>
                         <TableCell>Date</TableCell>
@@ -177,7 +299,7 @@ function ServiceTable() {
                         <TableCell>Testing Two</TableCell>
                         <TableCell>Testing Three</TableCell>
                     </TableRow>
-                </Table>
+                </Table> */}
             </Grid>
         </Grid >
     )
