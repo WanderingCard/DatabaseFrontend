@@ -51,17 +51,38 @@ function App() {
           </div>
         )
       case 'visit':
-        return(
+        return (
           <div>
             <h2>Visit</h2>
             <VisitForm />
           </div>
         )
-        case 'noServiceTechs':
-        return(
+      case 'noServiceTechs':
+        return (
           <div>
             <h2>TechniciansWithoutJobs</h2>
             <TechniciansWithoutJobs />
+          </div>
+        );
+      case 'visitTable':
+        return (
+          <div>
+            <h2>Visits Tables</h2>
+            This would contain the stuff from the PR I just put up, Customer and Date filtering of jobs. 
+          </div>
+        );
+      case 'serviceTable':
+        return (
+          <div>
+            <h2>Service Table</h2>
+            Would contain data from Issues 13 and 14, When no Service is selected it should show the data for 14 and when a service is selected it should show the data for 13
+          </div>
+        );
+      case 'technicianTable':
+        return (
+          <div>
+            <h2>Technician Table</h2>
+            Would contain data from Issues 19 (No tech selected) and 15 (Tech selected)
           </div>
         );
       default:
@@ -82,6 +103,9 @@ function App() {
         <button onClick={() => setActiveSection('technician')}>Technician</button>
         <button onClick={() => setActiveSection('visit')}>Visit</button>
         <button onClick={() => setActiveSection('noServiceTechs')}>NoServiceTechs</button>
+        <button onClick={() => setActiveSection('visitTable')}>Visits Table</button>
+        <button onClick={() => setActiveSection('serviceTable')}>Service Table</button>
+        <button onClick={() => setActiveSection('technicianTable')}>Technician Table</button>
       </div>
       {renderSection()}
     </Container>
