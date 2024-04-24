@@ -167,8 +167,31 @@ function ServiceTable() {
      * @param {Array[object]} array - an array of visits, must contain the car attribute
      */
     function groupByCar(array) {
-        const sorted = array.sort((a, b) => a.car.localeCompare(b.car));
-        return sorted;
+        var carVisits = {};
+        for (var i = 0; i < array.length; i++) {
+            if(array[i].car in carVisits) {
+                // var newArray = carVisits[array[i].car].push(array[i]);
+                var newArray = [...carVisits[array[i].car], array[i]];
+                carVisits = {...carVisits, [array[i].car]: newArray};
+            } else {
+                carVisits = {...carVisits, [array[i].car]: [array[i]]};
+            }
+            console.log(array[i].car, carVisits)
+        }
+
+        var sortedArray = [];
+
+        console.log(carVisits)
+
+        for (const car in carVisits) {
+            const carSort = carVisits[car].sort((a, b) => a.car.localeCompare(b.car));
+            sortedArray = sortedArray.concat(carSort);
+        }
+        return sortedArray;
+    }
+
+    function sortByDate(array) {
+        
     }
 
     function getTechName(techId) {
