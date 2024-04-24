@@ -167,31 +167,37 @@ function ServiceTable() {
      * @param {Array[object]} array - an array of visits, must contain the car attribute
      */
     function groupByCar(array) {
+        var sortedArray = sortByDate(array);
+        console.log(sortedArray);
         var carVisits = {};
-        for (var i = 0; i < array.length; i++) {
-            if(array[i].car in carVisits) {
+        for (var i = 0; i < sortedArray.length; i++) {
+            if(sortedArray[i].car in carVisits) {
                 // var newArray = carVisits[array[i].car].push(array[i]);
-                var newArray = [...carVisits[array[i].car], array[i]];
-                carVisits = {...carVisits, [array[i].car]: newArray};
+                var newArray = [...carVisits[sortedArray[i].car], sortedArray[i]];
+                carVisits = {...carVisits, [sortedArray[i].car]: newArray};
             } else {
-                carVisits = {...carVisits, [array[i].car]: [array[i]]};
+                carVisits = {...carVisits, [sortedArray[i].car]: [sortedArray[i]]};
             }
-            console.log(array[i].car, carVisits)
+            // console.log(array[i].car, carVisits)
         }
 
-        var sortedArray = [];
-
-        console.log(carVisits)
+        var outputArray = []
 
         for (const car in carVisits) {
-            const carSort = carVisits[car].sort((a, b) => a.car.localeCompare(b.car));
-            sortedArray = sortedArray.concat(carSort);
+            // const carSort = carVisits[car].sort((a, b) => a.car.localeCompare(b.car));
+            outputArray = outputArray.concat(carVisits[car]);
         }
-        return sortedArray;
-    }
 
+        console.log(outputArray)
+        return outputArray;
+    }
+    /**
+     * 
+     * @param {Array[Object]} array - an array of objects, must contain the date property 
+     */
     function sortByDate(array) {
-        
+        var sortedArray = array.sort((a,b) => new Date(a.date) - new Date(b.date))
+        return sortedArray;
     }
 
     function getTechName(techId) {
