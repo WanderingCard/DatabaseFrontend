@@ -1,47 +1,53 @@
-import { Grid, InputLabel, MenuItem, Paper, Select, Table, TableCell, TableHead, TableRow, Typography } from "@mui/material";
-import { useState, useEffect } from 'react';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import dayjs from 'dayjs';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
+import { useEffect, useState } from "react";
+import SummaryTable from "./ServiceSubTables/SummaryTable";
+import ServicesScheduledTable from "./ServiceSubTables/ServicesScheduledTable";
+import { Grid, InputLabel, MenuItem, Select } from "@mui/material";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs from "dayjs";
 
 function ServiceTable() {
-    const [customerCars, setCustomerCars] = useState([]);
-    const [customerServices, setServices] = useState([]);
+    const [services, setServices] = useState([]);
     const [visits, setVisits] = useState([]);
-    const [customers, setCustomers] = useState([]);
-    const [selectedCustomer, setSelectedCustomer] = useState('no value');
-    const [filterStartTime, setStartTime] = useState(null);
-    const [filterEndTime, setEndTime] = useState(null);
     const [cars, setCars] = useState([]);
-    const [filteredVisits, setFilteredVisits] = useState([]);
-    const [visitsLoaded, setLoaded] = useState(false);
-    const [technicians, setTechnicians] = useState([]);
+    const [techs, setTechs] = useState([]);
+    const [customers, setCustomers] = useState([]);
+
+    const [filteredJobs, setFilteredJobs] = useState([]);
+
+    const [filterService, setFilterService] = useState('summary');
+    const [filterStartDate, setStartDate] = useState(null);
+    const [filterEndDate, setEndDate] = useState(null);
 
     useEffect(() => {
-        getAllCustomers();
-        getAllCars();
-        getAllVisits();
-        getAllTechs();
+        fetchServices();
+        fetchVisits();
+        fetchCars();
+        fetchTechs();
+        fetchCustomers();
     }, [])
 
     useEffect(() => {
-        filterJobs();
-        // setLoaded(true);
-    }, [visits, cars, visits])
+        filterJobs(filterService, filterStartDate, filterEndDate);
+    }, [filterService, visits, filterStartDate, filterEndDate])
 
     useEffect(() => {
-        if (filteredVisits.length > 0)
-            setLoaded(true);
-    }, [filteredVisits])
+        console.log(filteredJobs);
+    }, [filteredJobs])
 
-    async function getAllCustomers() {
+    async function fetchServices() {
+        await fetch('http://localhost:5050/services', {
+            method: 'GET'
+        })
+        .then((response) => response.json())
+        .then((json) => {
+            setServices(json);
+        })
+        .catch((err) => console.error(err))
+    }
+
+    async function fetchCustomers() {
         await fetch('http://localhost:5050/customers/', {
             method: 'GET'
         })
@@ -53,7 +59,7 @@ function ServiceTable() {
             .catch((err) => console.error(err))
     }
 
-    async function getAllCars() {
+    async function fetchCars() {
         await fetch('http://localhost:5050/cars/', {
             method: 'GET'
         })
@@ -65,7 +71,7 @@ function ServiceTable() {
             .catch((err) => console.error(err))
     }
 
-    async function getAllVisits() {
+    async function fetchVisits() {
         await fetch('http://localhost:5050/visit/', {
             method: 'GET'
         })
@@ -77,170 +83,130 @@ function ServiceTable() {
             .catch((err) => console.error(err))
     }
 
-    async function getAllTechs() {
+    async function fetchTechs() {
         await fetch('http://localhost:5050/technicians/', {
             method: 'GET'
         })
         .then((response) => response.json())
-        .then((json) => setTechnicians(json))
+        .then((json) => setTechs(json))
         .catch((err) => console.error(err))
     }
 
-    useEffect(() => {
-        console.log(customers)
-    }, [customers])
-
-    useEffect(() => {
-        if (selectedCustomer !== 'no value') {
-            fetch('http://localhost:5050/customers/' + selectedCustomer, {
-                method: 'GET'
-            })
-                .then((response) => response.json())
-                .then((json) => {
-                    setCustomerCars(json.cars)
-                    // console.log(json.cars);
-                })
+    function filterJobs(serviceId, startDate, endDate) {
+        if(serviceId === 'summary') {
+            var filtered = generateUsableJobs().filter(job => inRange(job.date, startDate, endDate))
+            setFilteredJobs(filtered);            
         } else {
-            setCustomerCars([]);
+            var filtered = generateUsableJobs().filter(job => job.serviceId === serviceId && inRange(job.date, startDate, endDate));
+            setFilteredJobs(filtered);
         }
-    }, [selectedCustomer])
+    }
 
-    useEffect(() => {
-        console.log(customerCars);
-        filterJobs();
-    }, [customerCars, filterStartTime, filterEndTime])
-
-    function filterJobs() {
-        var filter = [];
-        if (customerCars.length === 0 && filterStartTime === null && filterEndTime === null) {
-            // setFilteredVisits(visits);
-            filter = visits;
+    function inRange(test, start, end) {
+        if(start === null) {
+            if(end === null)
+                return true;
+            return dayjs(test).isBefore(end);
+        } else if (end === null) {
+            // Start is not null, end is null
+            return dayjs(test).isAfter(start);
         } else {
-            for (var i = 0; i < visits.length; i++) {
-                if (customerCars.length === 0 || customerCars.includes(visits[i]['car'])) {
-                    if (dateInRange(visits[i]['date'], filterStartTime, filterEndTime) === true)
-                        filter.push(visits[i]);
-                }
-            }
+            // Nothing is null
+            return dayjs(test).isAfter(start) && dayjs(test).isBefore(end);
         }
-        console.log(filter);
-        setFilteredVisits(filter);
     }
 
     /**
      * 
-     * @param {string} testDate 
-     * @param {dayjs} startDate 
-     * @param {dayjs} endDate 
-     * @returns 
+     * @returns an array of services objects (custom made for this table) [date, customerName, carInfo, serviceName, techName]
      */
-    function dateInRange(testDate, startDate, endDate) {
-        if (startDate === null && endDate === null)
-            return true;
-        if (startDate !== null && dayjs(testDate).isBefore(startDate))
-            return false;
-        if (endDate !== null && dayjs(testDate).isAfter(endDate))
-            return false;
-        return true;
-    }
-
-    function getCarData(carId) {
-        // console.log(carId);
-        for (var i = 0; i < cars.length; i++) {
-            // console.log(cars[i]._id)
-            if (cars[i]._id === carId)
-                return cars[i];
+    function generateUsableJobs() {
+        var output = [];
+        for (var i = 0; i < visits.length; i++) {
+            var visitObject = visits[i];
+            console.log(visitObject);
+            var customerName = getCustomerName(visitObject.customer);
+            var carLabel = getCarLabel(visitObject.car);
+            var date = visitObject.date;
+            var serviceList = visitObject.job;
+            console.log(serviceList);
+            for (var a=0; a < serviceList.length; a++) {
+                console.log(serviceList[a]);
+                output.push({
+                    'date': date,
+                    'customerName': customerName,
+                    'carInfo': carLabel,
+                    'serviceId': serviceList[a].service._id,
+                    'serviceCost': serviceList[a].service.cost,
+                    'techName': getTechnName(serviceList[a].technician_id)
+                });
+                console.log(output);
+            }
         }
-        return null;
+        return output;
     }
 
     function getCustomerName(custId) {
         for (var i = 0; i < customers.length; i++) {
-            if (customers[i]._id === custId)
-                return customers[i].fname + ' ' + customers[i].lname;
+            var customer = customers[i];
+            // console.log(customer);
+            if (custId === customer._id)
+                return customer.fname + ' ' + customer.lname;
         }
-        return null;
+        return 'N/A';
     }
 
-    /**
-     * 
-     * @param {Array[object]} array - an array of visits, must contain the car attribute
-     */
-    function groupByCar(array) {
-        var sortedArray = sortByDate(array);
-        console.log(sortedArray);
-        var carVisits = {};
-        for (var i = 0; i < sortedArray.length; i++) {
-            if(sortedArray[i].car in carVisits) {
-                // var newArray = carVisits[array[i].car].push(array[i]);
-                var newArray = [...carVisits[sortedArray[i].car], sortedArray[i]];
-                carVisits = {...carVisits, [sortedArray[i].car]: newArray};
-            } else {
-                carVisits = {...carVisits, [sortedArray[i].car]: [sortedArray[i]]};
-            }
-            // console.log(array[i].car, carVisits)
-        }
-
-        var outputArray = []
-
-        for (const car in carVisits) {
-            // const carSort = carVisits[car].sort((a, b) => a.car.localeCompare(b.car));
-            outputArray = outputArray.concat(carVisits[car]);
-        }
-
-        console.log(outputArray)
-        return outputArray;
-    }
-    /**
-     * 
-     * @param {Array[Object]} array - an array of objects, must contain the date property 
-     */
-    function sortByDate(array) {
-        var sortedArray = array.sort((a,b) => new Date(a.date) - new Date(b.date))
-        return sortedArray;
-    }
-
-    function getTechName(techId) {
-        for(var i = 0; i < technicians.length; i++) {
-            if (technicians[i]._id === techId) {
-                return technicians[i].firstname + ' ' + technicians[i].lastname;
+    function getTechnName(techId) {
+        for (var i = 0; i < techs.length; i++) {
+            var tech = techs[i];
+            if(tech._id === techId) {
+                return tech.firstname + ' ' + tech.lastname;
             }
         }
-        return "N/A";
+        return 'N/A';
+    }
+
+    function getCarLabel(carId) {
+        for (var i = 0; i < cars.length; i++) {
+            var car = cars[i];   
+            if(car._id === carId) {
+                return car.model + ' - ' + car.licensePlate;
+            }
+        }
+        return 'N/A'
     }
 
     return (
-        <Grid container spacing={3} marginTop={'5px'}>
-            <Grid item xs={4}>
-                <InputLabel id='CustomerSelectBox'>Customer</InputLabel>
-                <Select
-                    fullWidth
-                    labelId='CustomerSelectBox'
-                    id='ServiceSelect'
-                    value={selectedCustomer}
-                    onChange={(event) => {
-                        setSelectedCustomer(event.target.value);
-                        console.log(event.target.value);
-                    }}
-                >
-                    {["", ...customers].map((customer) => (
-                        <MenuItem key={customer._id ? customer._id : 'no_value'} value={customer._id ? customer._id : 'no value'}>
-                            {customer._id ? customer.fname + " " + customer.lname : '-- Select Customer --'}
-                        </MenuItem>
-                    ))}
-                </Select>
-            </Grid>
+        <>
+            <Grid container spacing={3} marginTop={'5px'}>
+                <Grid item xs={4}>
+                    <InputLabel id='ServiceSelectLabel'>Service</InputLabel>
+                    <Select
+                        fullWidth
+                        labelId='ServiceSelectLabel'
+                        value={filterService}
+                        onChange={(event) => {
+                            setFilterService(event.target.value);
+                        }}
+                    >
+                        {["summary", ...services].map((service) => (
+                            <MenuItem key={service._id ? service._id : service} value ={service._id ? service._id : service}>
+                                {service.serviceName ? service.serviceName : "Summary"}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </Grid>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <Grid item xs={4}>
                     <InputLabel id='start-date-picker'>Start Date</InputLabel>
                     <DatePicker
                         fullWidth
-                        value={filterStartTime}
+                        value={filterStartDate}
                         onChange={(newValue) => {
                             console.log(newValue);
-                            setStartTime(newValue)
-                            if(newValue !== null && filterEndTime !== null && newValue.isAfter(filterEndTime)) {
-                                setEndTime(newValue);
+                            setStartDate(newValue)
+                            if(newValue !== null && filterEndDate !== null && newValue.isAfter(filterEndDate)) {
+                                setEndDate(newValue);
                             }
                         }}
                     />
@@ -249,94 +215,36 @@ function ServiceTable() {
                     <InputLabel id='end-date-picker'>End Date</InputLabel>
                     <DatePicker
                         fullWidth
-                        value={filterEndTime}
+                        value={filterEndDate}
                         onChange={(newValue) => {
                             console.log(newValue);
-                            if(newValue !== null && filterStartTime !== null && newValue.isBefore(filterStartTime)) {
-                                setStartTime(newValue);
+                            if(newValue !== null && filterStartDate !== null && newValue.isBefore(filterStartDate)) {
+                                setStartDate(newValue);
                             }
-                            setEndTime(newValue)
+                            setEndDate(newValue)
                         }}
                     />
                 </Grid>
             </LocalizationProvider>
-            <Grid item xs={12}>
-                <Table component={Paper} sx={{ overflowX: 'scroll', overflowY: 'scroll'}} >
-                    <TableHead>
-                        {selectedCustomer === 'no value' && <TableCell>Customer Name</TableCell>}
-                        <TableCell>License Plate</TableCell>
-                        <TableCell>Model</TableCell>
-                        <TableCell>Date and Time</TableCell>
-                        <TableCell>Service Name</TableCell>
-                        <TableCell>Service Cost</TableCell>
-                        <TableCell>Technician</TableCell>
-                    </TableHead>
-                    {visitsLoaded === false ?
-                        <Typography>Loading Visits</Typography> :
-                        groupByCar(filteredVisits).map((job) => {
-                            var carData = getCarData(job.car);
-                            console.log(carData);
-                            return (
-                                <>
-                                    <TableRow>
-                                        {selectedCustomer === 'no value' && <TableCell rowSpan={job.job.length}>{getCustomerName(job.customer)}</TableCell>}
-                                        <TableCell rowSpan={job.job.length}>
-                                            {carData.licensePlate}
-                                        </TableCell>
-                                        <TableCell rowSpan={job.job.length}>
-                                            {carData.model}
-                                        </TableCell>
-                                        <TableCell rowSpan={job.job.length}>
-                                            {dayjs.tz(job.date, 'America/New_York').format()}
-                                        </TableCell>
-                                        <TableCell>
-                                            {job.job[0].service.serviceName}
-                                        </TableCell>
-                                        <TableCell>
-                                            {job.job[0].service.cost}
-                                        </TableCell>
-                                        <TableCell>
-                                            {getTechName(job.job[0].technician_id)}
-                                        </TableCell>
-                                    </TableRow>
-                                    {job.job.slice(1).map((service) => (
-                                        <TableRow>
-                                            <TableCell>
-                                                {service.service.serviceName}
-                                            </TableCell>
-                                            <TableCell>
-                                                {service.service.cost}
-                                            </TableCell>
-                                            <TableCell>
-                                                {getTechName(service.technician_id)}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </>
-                            )
-                        })
-                    }
-                </Table>
-                {/* <Table component={Paper} sx={{ marginTop: '5px' }}>
-                    <TableHead>
-                        <TableCell>Car</TableCell>
-                        <TableCell>Date</TableCell>
-                        <TableCell>Service</TableCell>
-                        <TableCell>Technician</TableCell>
-                    </TableHead>
-                    <TableRow>
-                        <TableCell rowSpan={2}>Testing</TableCell>
-                        <TableCell>Testing Two</TableCell>
-                        <TableCell>Testing Three</TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell>Testing Two</TableCell>
-                        <TableCell>Testing Three</TableCell>
-                    </TableRow>
-                </Table> */}
+                <Grid item xs={12}>
+                    {filterService === 'summary' ? 
+                        <SummaryTable 
+                            services={services} 
+                            jobs={filteredJobs}
+                            startDate = {filterStartDate}
+                            endDate = {filterEndDate} 
+                            /> : 
+                        <ServicesScheduledTable 
+                            services = {services}
+                            selectedService = {filterService}
+                            jobs={filteredJobs}
+                            startDate = {filterStartDate}
+                            endDate = {filterEndDate}
+                        />} 
+                </Grid>
             </Grid>
-        </Grid >
-    )
+        </>
+    );
 }
 
 export default ServiceTable;
