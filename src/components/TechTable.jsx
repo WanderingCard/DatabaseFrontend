@@ -181,6 +181,23 @@ function TechTable() {
         return "N/A";
     }
 
+    function getTechSales() {
+        var salesTotal = 0;
+        for(var i = 0; i < filteredVisits.length; i++) {
+            if(filteredVisits[i].job.some(job => job.technician_id === selectedTechnician)) {
+                for (var j = 0; j < filteredVisits[i].job.length; j++) {
+                    if (filteredVisits[i].job[j].technician_id === selectedTechnician) {
+                        var serviceCost = parseFloat(filteredVisits[i].job[j].service.cost);
+                        if(!isNaN(serviceCost)){
+                            salesTotal += filteredVisits[i].job[j].service.cost;
+                        }
+                    }
+                }
+            }
+        }
+        return salesTotal;
+    }
+
     return (
         <Grid container spacing={3} marginTop={'5px'}>
             <Grid item xs={4}>
@@ -285,6 +302,11 @@ function TechTable() {
                     }
                 </Table>
             </Grid>
+            {selectedTechnician !== 'no value' && (
+                <Grid item xs={4}>
+                    <Typography>Total Sales: {getTechSales()}</Typography>
+                </Grid>
+            )}
         </Grid >
     )
 }
