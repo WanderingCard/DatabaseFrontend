@@ -7,6 +7,7 @@ import JobList from './components/JobList';
 import TechnicianForm from './components/TechnicianForm';
 import ServiceForm from './components/ServiceForm';
 import VisitForm from './components/VisitForm';
+import ServiceTable from './components/Tables/ServiceTable';
 import NoServiceTechs from './components/componentsPt.2/TechniciansWithoutJobs';
 import TechniciansWithoutJobs from './components/componentsPt.2/TechniciansWithoutJobs';
 
@@ -64,6 +65,10 @@ function App() {
             <TechniciansWithoutJobs />
           </div>
         );
+      case 'serviceSchedule':
+        return (
+          <ServiceTable />
+        )
       default:
         return null;
     }
@@ -81,6 +86,7 @@ function App() {
         <button onClick={() => setActiveSection('service')}> Services </button>
         <button onClick={() => setActiveSection('technician')}>Technician</button>
         <button onClick={() => setActiveSection('visit')}>Visit</button>
+        <button onClick={() => setActiveSection('serviceSchedule')}>Services List</button>
         <button onClick={() => setActiveSection('noServiceTechs')}>NoServiceTechs</button>
       </div>
       {renderSection()}
