@@ -8,8 +8,8 @@ import TechnicianForm from './components/TechnicianForm';
 import ServiceForm from './components/ServiceForm';
 import VisitForm from './components/VisitForm';
 import ServiceTable from './components/Tables/ServiceTable';
-import NoServiceTechs from './components/componentsPt.2/TechniciansWithoutJobs';
 import TechniciansWithoutJobs from './components/componentsPt.2/TechniciansWithoutJobs';
+import TechTable from './components/Tables/TechTable';
 
 function App() {
   const [activeSection, setActiveSection] = useState('customers');
@@ -83,7 +83,7 @@ function App() {
         return (
           <div>
             <h2>Technician Table</h2>
-            Would contain data from Issues 19 (No tech selected) and 15 (Tech selected)
+            <TechTable />
           </div>
         );
       default:
