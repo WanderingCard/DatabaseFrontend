@@ -44,6 +44,7 @@ function ServiceTable() {
         .then((json) => {
             setServices(json);
         })
+        .catch((err) => console.error(err))
     }
 
     async function fetchCustomers() {
@@ -136,6 +137,7 @@ function ServiceTable() {
                     'customerName': customerName,
                     'carInfo': carLabel,
                     'serviceId': serviceList[a].service._id,
+                    'serviceCost': serviceList[a].service.cost,
                     'techName': getTechnName(serviceList[a].technician_id)
                 });
                 console.log(output);
@@ -228,12 +230,14 @@ function ServiceTable() {
                     {filterService === 'summary' ? 
                         <SummaryTable 
                             services={services} 
+                            jobs={filteredJobs}
                             startDate = {filterStartDate}
                             endDate = {filterEndDate} 
                             /> : 
                         <ServicesScheduledTable 
                             services = {services}
                             selectedService = {filterService}
+                            jobs={filteredJobs}
                             startDate = {filterStartDate}
                             endDate = {filterEndDate}
                         />} 
