@@ -239,7 +239,7 @@ function ServiceTable() {
                         onChange={(newValue) => {
                             console.log(newValue);
                             setStartTime(newValue)
-                            if(filterEndTime !== null && newValue.isAfter(filterEndTime)) {
+                            if(newValue !== null && filterEndTime !== null && newValue.isAfter(filterEndTime)) {
                                 setEndTime(newValue);
                             }
                         }}
@@ -252,7 +252,7 @@ function ServiceTable() {
                         value={filterEndTime}
                         onChange={(newValue) => {
                             console.log(newValue);
-                            if(filterStartTime !== null && newValue.isBefore(filterStartTime)) {
+                            if(newValue !== null && filterStartTime !== null && newValue.isBefore(filterStartTime)) {
                                 setStartTime(newValue);
                             }
                             setEndTime(newValue)
