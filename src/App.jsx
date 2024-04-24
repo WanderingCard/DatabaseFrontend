@@ -10,6 +10,7 @@ import VisitForm from './components/VisitForm';
 import ServiceTable from './components/Tables/ServiceTable';
 import NoServiceTechs from './components/componentsPt.2/TechniciansWithoutJobs';
 import TechniciansWithoutJobs from './components/componentsPt.2/TechniciansWithoutJobs';
+import JobTable from './components/Tables/JobTable';
 
 function App() {
   const [activeSection, setActiveSection] = useState('customers');
@@ -65,7 +66,11 @@ function App() {
             <TechniciansWithoutJobs />
           </div>
         );
-      case 'serviceSchedule':
+      case 'jobTable':
+        return (
+          <JobTable />
+        );
+      case 'serviceTable':
         return (
           <ServiceTable />
         )
@@ -86,7 +91,8 @@ function App() {
         <button onClick={() => setActiveSection('service')}> Services </button>
         <button onClick={() => setActiveSection('technician')}>Technician</button>
         <button onClick={() => setActiveSection('visit')}>Visit</button>
-        <button onClick={() => setActiveSection('serviceSchedule')}>Services List</button>
+        <button onClick={() => setActiveSection('jobTable')}>Jobs Table</button>
+        <button onClick={() => setActiveSection('serviceTable')}>Service Table</button>
         <button onClick={() => setActiveSection('noServiceTechs')}>NoServiceTechs</button>
       </div>
       {renderSection()}
