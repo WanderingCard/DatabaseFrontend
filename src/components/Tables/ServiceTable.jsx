@@ -5,6 +5,7 @@ import { Grid, InputLabel, MenuItem, Select } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs from "dayjs";
 
 function ServiceTable() {
     const [services, setServices] = useState([]);
@@ -28,8 +29,8 @@ function ServiceTable() {
     }, [])
 
     useEffect(() => {
-        filterJobs(filterService);
-    }, [filterService, visits])
+        filterJobs(filterService, filterStartDate, filterEndDate);
+    }, [filterService, visits, filterStartDate, filterEndDate])
 
     useEffect(() => {
         console.log(filteredJobs);
@@ -90,12 +91,27 @@ function ServiceTable() {
         .catch((err) => console.error(err))
     }
 
-    function filterJobs(serviceId) {
-        if(filterService === 'summary') {
-            setFilteredJobs(generateUsableJobs());
+    function filterJobs(serviceId, startDate, endDate) {
+        if(serviceId === 'summary') {
+            var filtered = generateUsableJobs().filter(job => inRange(job.date, startDate, endDate))
+            setFilteredJobs(filtered);            
         } else {
-            var filtered = generateUsableJobs().filter(job => job.serviceId === filterService);
+            var filtered = generateUsableJobs().filter(job => job.serviceId === serviceId && inRange(job.date, startDate, endDate));
             setFilteredJobs(filtered);
+        }
+    }
+
+    function inRange(test, start, end) {
+        if(start === null) {
+            if(end === null)
+                return true;
+            return dayjs(test).isBefore(end);
+        } else if (end === null) {
+            // Start is not null, end is null
+            return dayjs(test).isAfter(start);
+        } else {
+            // Nothing is null
+            return dayjs(test).isAfter(start) && dayjs(test).isBefore(end);
         }
     }
 
