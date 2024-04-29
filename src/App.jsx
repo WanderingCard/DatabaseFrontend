@@ -7,6 +7,7 @@ import JobList from './components/JobList';
 import TechnicianForm from './components/TechnicianForm';
 import ServiceForm from './components/ServiceForm';
 import VisitForm from './components/VisitForm';
+import TechTable from './components/TechTable';
 import TechniciansWithoutJobs from './components/componentsPt.2/TechniciansWithoutJobs';
 import TechTable from './components/Tables/TechTable';
 import JobTable from './components/Tables/JobTable';
@@ -59,6 +60,10 @@ function App() {
             <VisitForm />
           </div>
         )
+      case 'Tstats':
+        return(
+          <div>
+            <h2>Technician Statistics</h2>
       case 'noServiceTechs':
         return (
           <div>
@@ -101,6 +106,7 @@ function App() {
         <button onClick={() => setActiveSection('service')}> Services </button>
         <button onClick={() => setActiveSection('technician')}>Technician</button>
         <button onClick={() => setActiveSection('visit')}>Visit</button>
+        <button onClick={() => setActiveSection('Tstats')}>Tech Stats</button>
         <button onClick={() => setActiveSection('jobTable')}>Jobs Table</button>
         <button onClick={() => setActiveSection('serviceTable')}>Service Table</button>
         <button onClick={() => setActiveSection('noServiceTechs')}>NoServiceTechs</button>

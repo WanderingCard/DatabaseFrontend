@@ -1,4 +1,3 @@
-//Changed to be the defacto show all jobs and adjust by date tab
 import { Grid, InputLabel, MenuItem, Paper, Select, Table, TableCell, TableHead, TableRow, Typography } from "@mui/material";
 import { useState, useEffect } from 'react';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -12,7 +11,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 
-function ServiceTable() {
+function ServiceStats() {
     const [customerCars, setCustomerCars] = useState([]);
     const [customerServices, setServices] = useState([]);
     const [visits, setVisits] = useState([]);
@@ -206,6 +205,25 @@ function ServiceTable() {
 
     return (
         <Grid container spacing={3} marginTop={'5px'}>
+            <Grid item xs={4}>
+                <InputLabel id='CustomerSelectBox'>Customer</InputLabel>
+                <Select
+                    fullWidth
+                    labelId='CustomerSelectBox'
+                    id='ServiceSelect'
+                    value={selectedCustomer}
+                    onChange={(event) => {
+                        setSelectedCustomer(event.target.value);
+                        console.log(event.target.value);
+                    }}
+                >
+                    {["", ...customers].map((customer) => (
+                        <MenuItem key={customer._id ? customer._id : 'no_value'} value={customer._id ? customer._id : 'no value'}>
+                            {customer._id ? customer.fname + " " + customer.lname : '-- Select Customer --'}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </Grid>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <Grid item xs={4}>
                     <InputLabel id='start-date-picker'>Start Date</InputLabel>
@@ -241,13 +259,11 @@ function ServiceTable() {
                         <TableCell>Service Name</TableCell>
                         <TableCell>Service Cost</TableCell>
                         <TableCell>Technician</TableCell>
-                        <TableCell>Visit Cost</TableCell>
                     </TableHead>
                     {visitsLoaded === false ?
                         <Typography>Loading Visits</Typography> :
                         groupByCar(filteredVisits).map((job) => {
                             var carData = getCarData(job.car);
-                            var totalCost = job.job.reduce((total, service) => total + service.service.cost, 0)
                             console.log(carData);
                             return (
                                 <>
@@ -283,11 +299,6 @@ function ServiceTable() {
                                             <TableCell>
                                                 {getTechName(service.technician_id)}
                                             </TableCell>
-                                        {job.job.length > 1 ? null : (
-                                          <TableCell rowSpan={job.job.length}>
-                                              {totalCost}
-                                          </TableCell>
-                                        )}
                                         </TableRow>
                                     ))}
                                 </>
@@ -295,9 +306,26 @@ function ServiceTable() {
                         })
                     }
                 </Table>
+                {/* <Table component={Paper} sx={{ marginTop: '5px' }}>
+                    <TableHead>
+                        <TableCell>Car</TableCell>
+                        <TableCell>Date</TableCell>
+                        <TableCell>Service</TableCell>
+                        <TableCell>Technician</TableCell>
+                    </TableHead>
+                    <TableRow>
+                        <TableCell rowSpan={2}>Testing</TableCell>
+                        <TableCell>Testing Two</TableCell>
+                        <TableCell>Testing Three</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>Testing Two</TableCell>
+                        <TableCell>Testing Three</TableCell>
+                    </TableRow>
+                </Table> */}
             </Grid>
         </Grid >
     )
 }
 
-export default ServiceTable;
+export default ServiceStats;

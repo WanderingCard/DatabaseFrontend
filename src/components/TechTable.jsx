@@ -1,4 +1,3 @@
-//Changed to be the defacto show all jobs and adjust by date tab
 import { Grid, InputLabel, MenuItem, Paper, Select, Table, TableCell, TableHead, TableRow, Typography } from "@mui/material";
 import { useState, useEffect } from 'react';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -12,18 +11,16 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 
-function ServiceTable() {
-    const [customerCars, setCustomerCars] = useState([]);
-    const [customerServices, setServices] = useState([]);
-    const [visits, setVisits] = useState([]);
+function TechTable() {
     const [customers, setCustomers] = useState([]);
-    const [selectedCustomer, setSelectedCustomer] = useState('no value');
+    const [cars, setCars] = useState([]);
+    const [visits, setVisits] = useState([]);
+    const [technicians, setTechnicians] = useState([]);
     const [filterStartTime, setStartTime] = useState(null);
     const [filterEndTime, setEndTime] = useState(null);
-    const [cars, setCars] = useState([]);
     const [filteredVisits, setFilteredVisits] = useState([]);
     const [visitsLoaded, setLoaded] = useState(false);
-    const [technicians, setTechnicians] = useState([]);
+    const [selectedTechnician, setSelectedTechnician] = useState('no value');
 
     useEffect(() => {
         getAllCustomers();
@@ -34,7 +31,6 @@ function ServiceTable() {
 
     useEffect(() => {
         filterJobs();
-        // setLoaded(true);
     }, [visits, cars, visits])
 
     useEffect(() => {
@@ -88,37 +84,23 @@ function ServiceTable() {
     }
 
     useEffect(() => {
-        console.log(customers)
-    }, [customers])
+        setSelectedTechnician('no value');
+        console.log(technicians)
+    }, [technicians])
 
     useEffect(() => {
-        if (selectedCustomer !== 'no value') {
-            fetch('http://localhost:5050/customers/' + selectedCustomer, {
-                method: 'GET'
-            })
-                .then((response) => response.json())
-                .then((json) => {
-                    setCustomerCars(json.cars)
-                    // console.log(json.cars);
-                })
-        } else {
-            setCustomerCars([]);
-        }
-    }, [selectedCustomer])
-
-    useEffect(() => {
-        console.log(customerCars);
+        console.log(selectedTechnician);
         filterJobs();
-    }, [customerCars, filterStartTime, filterEndTime])
+    }, [selectedTechnician, filterStartTime, filterEndTime])
 
     function filterJobs() {
         var filter = [];
-        if (customerCars.length === 0 && filterStartTime === null && filterEndTime === null) {
+        if (selectedTechnician === 'no value' && filterStartTime === null && filterEndTime === null) {
             // setFilteredVisits(visits);
             filter = visits;
         } else {
             for (var i = 0; i < visits.length; i++) {
-                if (customerCars.length === 0 || customerCars.includes(visits[i]['car'])) {
+                if(selectedTechnician === 'no value' || visits[i]['job'].some(job => job.technician_id === selectedTechnician)){
                     if (dateInRange(visits[i]['date'], filterStartTime, filterEndTime) === true)
                         filter.push(visits[i]);
                 }
@@ -171,7 +153,6 @@ function ServiceTable() {
         var carVisits = {};
         for (var i = 0; i < array.length; i++) {
             if(array[i].car in carVisits) {
-                // var newArray = carVisits[array[i].car].push(array[i]);
                 var newArray = [...carVisits[array[i].car], array[i]];
                 carVisits = {...carVisits, [array[i].car]: newArray};
             } else {
@@ -191,10 +172,6 @@ function ServiceTable() {
         return sortedArray;
     }
 
-    function sortByDate(array) {
-        
-    }
-
     function getTechName(techId) {
         for(var i = 0; i < technicians.length; i++) {
             if (technicians[i]._id === techId) {
@@ -204,8 +181,44 @@ function ServiceTable() {
         return "N/A";
     }
 
+    function getTechSales() {
+        var salesTotal = 0;
+        for(var i = 0; i < filteredVisits.length; i++) {
+            if(filteredVisits[i].job.some(job => job.technician_id === selectedTechnician)) {
+                for (var j = 0; j < filteredVisits[i].job.length; j++) {
+                    if (filteredVisits[i].job[j].technician_id === selectedTechnician) {
+                        var serviceCost = parseFloat(filteredVisits[i].job[j].service.cost);
+                        if(!isNaN(serviceCost)){
+                            salesTotal += serviceCost;
+                        }
+                    }
+                }
+            }
+        }
+        return salesTotal;
+    }
+
     return (
         <Grid container spacing={3} marginTop={'5px'}>
+            <Grid item xs={4}>
+                <InputLabel id='TechnicianSelectBox'>Technician</InputLabel>
+                <Select
+                    fullWidth
+                    labelId='TechnicianSelectBox'
+                    id='ServiceSelect'
+                    value={selectedTechnician}
+                    onChange={(event) => {
+                        setSelectedTechnician(event.target.value);
+                        console.log(event.target.value);
+                    }}
+                >
+                    {["", ...technicians].map((technicians) => (
+                        <MenuItem key={technicians._id ? technicians._id : 'no_value'} value={technicians._id ? technicians._id : 'no value'}>
+                            {technicians._id ? technicians.firstname + " " + technicians.lastname : '-- Select Technician --'}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </Grid>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <Grid item xs={4}>
                     <InputLabel id='start-date-picker'>Start Date</InputLabel>
@@ -234,25 +247,23 @@ function ServiceTable() {
             <Grid item xs={12}>
                 <Table component={Paper} sx={{ overflowX: 'scroll', overflowY: 'scroll'}} >
                     <TableHead>
-                        {selectedCustomer === 'no value' && <TableCell>Customer Name</TableCell>}
+                        <TableCell>Customer Name</TableCell>
                         <TableCell>License Plate</TableCell>
                         <TableCell>Model</TableCell>
                         <TableCell>Date and Time</TableCell>
                         <TableCell>Service Name</TableCell>
                         <TableCell>Service Cost</TableCell>
-                        <TableCell>Technician</TableCell>
-                        <TableCell>Visit Cost</TableCell>
+                        {selectedTechnician === 'no value' && <TableCell>Technician</TableCell>}
                     </TableHead>
                     {visitsLoaded === false ?
                         <Typography>Loading Visits</Typography> :
                         groupByCar(filteredVisits).map((job) => {
                             var carData = getCarData(job.car);
-                            var totalCost = job.job.reduce((total, service) => total + service.service.cost, 0)
                             console.log(carData);
                             return (
                                 <>
                                     <TableRow>
-                                        {selectedCustomer === 'no value' && <TableCell rowSpan={job.job.length}>{getCustomerName(job.customer)}</TableCell>}
+                                       <TableCell rowSpan={job.job.length}>{getCustomerName(job.customer)}</TableCell>
                                         <TableCell rowSpan={job.job.length}>
                                             {carData.licensePlate}
                                         </TableCell>
@@ -268,9 +279,9 @@ function ServiceTable() {
                                         <TableCell>
                                             {job.job[0].service.cost}
                                         </TableCell>
-                                        <TableCell>
+                                        {selectedTechnician === 'no value' &&  <TableCell>
                                             {getTechName(job.job[0].technician_id)}
-                                        </TableCell>
+                                        </TableCell>}
                                     </TableRow>
                                     {job.job.slice(1).map((service) => (
                                         <TableRow>
@@ -280,14 +291,9 @@ function ServiceTable() {
                                             <TableCell>
                                                 {service.service.cost}
                                             </TableCell>
-                                            <TableCell>
+                                            {selectedTechnician === 'no value' && <TableCell>
                                                 {getTechName(service.technician_id)}
-                                            </TableCell>
-                                        {job.job.length > 1 ? null : (
-                                          <TableCell rowSpan={job.job.length}>
-                                              {totalCost}
-                                          </TableCell>
-                                        )}
+                                            </TableCell>}
                                         </TableRow>
                                     ))}
                                 </>
@@ -296,8 +302,13 @@ function ServiceTable() {
                     }
                 </Table>
             </Grid>
+            {selectedTechnician !== 'no value' && (
+                <Grid item xs={4}>
+                    <Typography>Total Sales: {getTechSales()}</Typography>
+                </Grid>
+            )}
         </Grid >
     )
 }
 
-export default ServiceTable;
+export default TechTable;
